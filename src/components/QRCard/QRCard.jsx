@@ -68,14 +68,21 @@ export default function QRCard({ pet, onNavigate }) {
                 <ShieldCheck size={12} /> FICHA SEGURA
               </span>
             </div>
+
             <div className="qr-pet-info">
               <PetAvatar pet={pet} size="medium" />
               <div>
                 <h3>{pet.name || "Mi mascota"}</h3>
                 <p>{[pet.breed, pet.species].filter(Boolean).join(" · ")}</p>
+
+                {pet.phone?.trim() && (
+                  <p className="qr-contact-phone">Tel. {pet.phone}</p>
+                )}
+
                 <span>MI FAMILIA ME ESTÁ BUSCANDO</span>
               </div>
             </div>
+
             <div className="qr-code-frame" ref={qrRef}>
               <QRCodeCanvas
                 value={profileUrl}

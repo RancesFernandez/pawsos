@@ -330,3 +330,21 @@
     display: none !important;
   }
 }
+
+
+.qr-contact-phone {
+  margin: 0 0 7px !important;
+  color: #3f5368 !important;
+  font-size: 12px !important;
+  font-weight: 700;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+@media print {
+  .qr-contact-phone {
+    color: #294b3b !important;
+    font-size: 12px !important;
+  }
+}
+
