@@ -87,8 +87,7 @@ export default function Leaderboard({ entries, pet, user }) {
           <p>Sumá puntos registrando momentos en el diario.</p>
         </div>
         <div className="points-badge">
-          Nivel{" "}
-          {mine >= 100 ? "Estrella" : mine >= 50 ? "Amoroso" : "Aprendiz"}
+          Nivel {mine >= 100 ? "Estrella" : mine >= 50 ? "Amoroso" : "Aprendiz"}
         </div>
       </div>
       <div className="leaderboard-toolbar">
