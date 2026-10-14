@@ -59,7 +59,7 @@ export default function App() {
   const [publicProfile, setPublicProfile] = useState(false);
   const [publicPet, setPublicPet] = useState(null);
   const [publicLoading, setPublicLoading] = useState(false);
-  const [points, setPoints] = useState(0);
+  const [points, setPoints] = useLocalStorage("huellita-care-points-v1", 0);
   useEffect(() => {
     if (!firebaseConfigured) return;
     return onAuthStateChanged(auth, async (current) => {

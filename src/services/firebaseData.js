@@ -67,7 +67,8 @@ export async function savePet(uid, pet, user) {
       uid,
       displayName:
         user?.displayName || user?.email?.split("@")[0] || "Amante de mascotas",
-      points: Number(user?.points || 0),
+      // No escribir "points" al editar la mascota. El puntaje pertenece
+      // al perfil de cuidado y solo updateLeaderboard debe modificarlo.
       species:
         full.species === "Otro"
           ? full.speciesOther || "Otra especie"
