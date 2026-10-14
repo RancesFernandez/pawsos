@@ -18,7 +18,7 @@ export default function PublicPet({ pet, onBack }) {
     <header className="public-brand"><span className="public-brand-mark"><PawPrint size={19}/></span><strong>huellita<span>.</span></strong><span className="public-secure"><ShieldCheck size={13}/> FICHA DE IDENTIFICACIÓN</span></header>
     <section className="public-pet-card">
       <div className="public-cover"><div className="public-cover-sun"/><span>SIEMPRE CERCA DE CASA <Heart size={13} fill="currentColor"/></span></div>
-      <div className="public-main-info"><PetAvatar pet={pet} size="large"/><div><span className="public-found-label">¡HOLA! SOY</span><h1>{pet.name || 'Una mascota'}</h1><p>{[pet.breed,pet.species].filter(Boolean).join(' · ')}</p><div className="public-tags">{pet.birthDate && <span>{getAgeLabel(pet.birthDate)}</span>}{pet.sex && <span>{pet.sex}</span>}</div></div></div>
+      <div className="public-main-info"><PetAvatar pet={pet} size="large"/><div><span className="public-found-label">¡HOLA! SOY</span><h1>{pet.name || 'Una mascota'}</h1><p>{[pet.breed,pet.species==='Otro'?(pet.speciesOther||'Otra especie'):pet.species].filter(Boolean).join(' · ')}</p><div className="public-tags">{pet.birthDate && <span>{getAgeLabel(pet.birthDate)}</span>}{pet.sex && <span>{pet.sex}</span>}</div></div></div>
       <p className="public-bio">{pet.bio || pet.temperament || 'Soy parte de una familia que me quiere mucho. ¡Ayudame a volver a casa!'}</p>
       <div className="public-contact-heading"><span>¿ME ENCONTRASTE?</span><p>¡Gracias por ayudarme a volver con mi familia!</p></div>
       <div className="public-contact-actions">
@@ -40,7 +40,7 @@ export default function PublicPet({ pet, onBack }) {
       </div>}
       <button className="public-share" onClick={share}><Share2 size={15}/> Compartir esta ficha</button>
     </section>
-    <footer className="public-footer"><span>Hecho con <Heart size={11} fill="currentColor"/> para cuidar de quienes más queremos.</span><small>Huellita · Ficha de demostración</small></footer>
+    <footer className="public-footer"><span>Hecho con <Heart size={11} fill="currentColor"/> para cuidar de quienes más queremos.</span><small>Huellita · Ficha pública de identificación</small></footer>
     <button className="public-back" onClick={onBack}>Volver al panel de demostración</button>
   </main>;
 }

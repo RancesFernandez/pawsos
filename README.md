@@ -1,94 +1,51 @@
-# Huellita QR — MVP React + PWA
+# Huellita — React + PWA + Firebase
 
-Una primera versión visual y funcional para administrar una ficha de mascota, generar un QR, mostrar una ficha pública de emergencia y guardar recuerdos de bienestar.
+App responsive para fichas QR de mascotas, diario con fotos comprimidas, puntos de cuidado y ranking comunitario.
 
-## Requisitos
+## Requisitos y ejecución
+- Node.js 20 o posterior recomendado.
+- `npm install`
+- `npm run dev`
+- Producción local: `npm run build` y `npm run preview`.
 
-- Node.js 20 LTS o posterior recomendado
-- npm
-- Un navegador moderno
+## Configurar Firebase paso a paso
 
-## Ejecutar en local
+1. Entrá a https://console.firebase.google.com/ y pulsá **Crear un proyecto**. Podés desactivar Google Analytics para mantenerlo simple.
+2. Dentro del proyecto, tocá el engranaje **Configuración del proyecto** → **General** → **Tus aplicaciones** → icono web `</>`.
+3. Registrá la app como `Huellita Web`. Copiá la configuración del SDK (apiKey, authDomain, projectId y appId). Son identificadores de cliente, no una clave privada de servidor.
+4. En la raíz del proyecto, duplicá `.env.example` y nombrá la copia `.env.local`. Pegá cada valor después del `=`. No subas `.env.local a GitHub.
+5. En Firebase Console → **Authentication** → **Comenzar** → **Sign-in method**, habilitá **Correo electrónico/Contraseña**.
+6. En **Firestore Database** → **Crear base de datos**. Para comenzar, elegí modo producción y una ubicación cercana a tus usuarios (la ubicación no se puede cambiar fácilmente luego).
+7. Abrí Firestore → pestaña **Reglas** y pegá el contenido de `firestore.rules`. Pulsá **Publicar**. Las reglas separan las mascotas privadas del documento público que ve quien escanea el QR.
+8. En Authentication → **Settings / Configuración** → **Authorized domains**, comprobá que esté tu dominio de producción y `localhost` para desarrollo (Firebase puede incluir localhost automáticamente).
+9. Reiniciá Vite luego de editar variables: detené con `Ctrl+C` y ejecutá `npm run dev` otra vez.
+10. Registrá una cuenta desde la pantalla inicial. Editá la mascota y guardá. Se crea una ficha privada para el dueño y una ficha pública limitada para el QR.
 
-```bash
-npm install
-npm run dev
-```
+## Plan gratuito: atención a las fotos
+- Firebase Authentication con email/contraseña tiene cuota sin costo para el uso habitual.
+- Cloud Firestore tiene cuota gratuita (en el plan Spark, por ejemplo, hasta 1 GiB almacenado, 20.000 escrituras/día y 50.000 lecturas/día para la edición Standard; revisá siempre la página de precios actual).
+- **Importante:** desde el 3 de febrero de 2026, Cloud Storage for Firebase requiere el plan Blaze vinculado a facturación para crear o mantener acceso a buckets. Aunque hay cuotas de uso sin costo en Blaze, requiere un método de pago y el uso por encima de las cuotas puede generar cargos. Esta versión por eso comprime fotos en el navegador y las guarda dentro de los documentos del diario en Firestore (límite de objetivo aproximado 220 KB por foto), sin usar Storage. No guardes imágenes enormes ni datos médicos innecesarios.
+- Configurá alertas de presupuesto si activás Blaze. Las alertas avisan, pero no necesariamente bloquean el gasto.
 
-Abrí la URL local que muestra Vite.
+## Cómo funciona el QR sin login
+El QR apunta a `/#/pet/ID`. Esa ruta consulta `publicPets/{ID}` sin pedir autenticación. Los datos privados del dueño y el diario viven en `users/{uid}/...` y solo el dueño autenticado puede acceder. Antes de publicar, revisá qué campos de contacto/salud querés que sean visibles públicamente.
 
-## Generar versión de producción
+## Diario, fotos y puntos
+- Al adjuntar una imagen, se convierte a JPEG, se limita a 1200 px y se comprime antes de guardarse.
+- Cada nuevo registro suma 10 puntos de cuidado en la interfaz; el ranking público permite filtrar por especie y tipo de animal.
+- Para un lanzamiento real, conviene migrar la asignación de puntos a un backend confiable (por ejemplo, Cloud Functions), porque las reglas de cliente no pueden impedir completamente que alguien manipule sus puntos.
+- En esta versión no se integra Firebase Storage. La foto queda en el documento de Firestore y tiene un tamaño máximo objetivo para respetar el límite de documento.
 
-```bash
-npm run build
-npm run preview
-```
+## Estructura destacada
+- `src/components/*`: componentes React con CSS separado.
+- `src/firebase.js`: inicialización opcional de Firebase.
+- `src/services/firebaseData.js`: acceso a Firestore.
+- `src/utils/compressImage.js`: compresión de fotos en el navegador.
+- `firestore.rules`: reglas de seguridad iniciales.
 
-El resultado se genera en `dist/`.
-
-## Qué incluye
-
-- React + Vite.
-- Componentes organizados por función y CSS independiente.
-- Diseño responsive para desktop y móvil.
-- Configuración PWA con `vite-plugin-pwa`.
-- Perfil editable con información de identidad, contacto, salud y rutina.
-- Foto de mascota guardada como data URL en el navegador (límite de 3 MB).
-- QR descargable en PNG y vista imprimible.
-- Ficha pública de emergencia de demostración.
-- Diario de huellitas con filtros, búsqueda, alta y eliminación.
-- Persistencia local con `localStorage`.
-- Datos demo precargados para que se pueda explorar inmediatamente.
-
-## Importante: límites de esta demo
-
-**Los datos se guardan solamente en el navegador y dispositivo actual.** Todavía no hay backend, autenticación, sincronización entre dispositivos, control de acceso ni almacenamiento de fotos remoto. No uses datos reales sensibles para publicar esta demo.
-
-La ficha QR usa una ruta hash (`#/pet/ID`) y actualmente muestra los datos locales del dispositivo. Para que un QR funcione desde cualquier teléfono en producción, cada perfil debe guardarse en un backend y el QR debe apuntar a una URL pública permanente. Un siguiente paso recomendado es conectar Supabase con políticas RLS, autenticación del dueño, tabla de mascotas, tabla de recuerdos y campos públicos explícitamente seleccionados.
-
-El botón de notificaciones es decorativo en este MVP. No se implementan push notifications, recordatorios de salud ni avisos veterinarios.
-
-Los iconos de PWA se declaran en el manifiesto, pero este paquete inicial no incluye archivos PNG para ellos. Antes de publicar, generar `public/pwa-192.png` y `public/pwa-512.png` a partir del favicon o de un icono de marca cuadrado. La PWA se debe probar sobre HTTPS (o localhost).
-
-## Estructura
-
-```text
-src/
-  components/
-    Dashboard/
-    Diary/
-    PetAvatar/
-    PetProfile/
-    PublicPet/
-    QRCard/
-    Sidebar/
-    StatCard/
-    Topbar/
-  data/
-  hooks/
-  styles/
-  utils/
-  App.jsx
-  main.jsx
-```
-
-## Próximos pasos sugeridos
-
-1. Conectar Supabase y definir qué campos son públicos en la ficha QR.
-2. Crear autenticación y perfiles por usuario.
-3. Hacer que el QR apunte a la URL pública real, no a datos locales.
-4. Añadir recordatorios configurables (vacunas, antiparasitarios, controles) con fechas y confirmación de cumplimiento.
-5. Añadir exportación/backup de los datos.
-6. Incorporar analítica respetuosa con la privacidad para medir uso recurrente y compartir.
-7. Generar iconos PWA y probar instalación en Android/iOS.
-8. Preparar pruebas de validación y una política de privacidad.
-
-## Buenas prácticas incluidas
-
-- Componentes pequeños con estilos encapsulados por carpeta.
-- Lógica reutilizable para fechas y almacenamiento.
-- Formularios controlados y límites básicos de entrada.
-- Etiquetas y nombres accesibles para botones.
-- Responsive layout y estados vacíos.
-- `React.StrictMode`.
-- PWA con actualización automática del service worker.
+## Limitaciones / antes de producción
+1. El ranking usa un documento público con alias y categorías; no se publica el email.
+2. Los puntos son una mecánica MVP y deben validarse en servidor para evitar fraude.
+3. La ficha QR pública muestra campos de contacto y de emergencia; el dueño debe revisar esos campos antes de publicar.
+4. Probar en un proyecto Firebase de desarrollo y verificar reglas con usuarios distintos antes de cargar datos reales.
+5. No se implementó restablecimiento de contraseña ni verificación de email en esta iteración.

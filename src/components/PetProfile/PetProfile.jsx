@@ -12,7 +12,7 @@ const sections = [
 
 const fields = {
   basic: [
-    ['name', 'Nombre', 'text'], ['species', 'Especie', 'select', ['Perro','Gato','Conejo','Ave','Otro']],
+    ['name', 'Nombre', 'text'], ['species', 'Especie', 'select', ['Perro','Gato','Conejo','Ave','Pez','Reptil','Roedor','Hurón','Caballo','Otro']], ['animalType', 'Tipo de animal', 'select', ['Mascota doméstica','Animal de asistencia','Animal de granja','Animal exótico','Fauna silvestre rescatada','Otro']],
     ['breed', 'Raza', 'text'], ['birthDate', 'Fecha de nacimiento', 'date'], ['sex', 'Sexo', 'select', ['Hembra','Macho','No especificado']],
     ['weight', 'Peso (kg)', 'number'], ['color', 'Color y señas particulares', 'text'], ['microchip', 'N.º de microchip', 'text'],
     ['temperament', 'Personalidad', 'text'], ['bio', 'Una pequeña presentación', 'textarea']
@@ -55,7 +55,7 @@ export default function PetProfile({ pet, setPet, onNavigate }) {
       <form className="profile-form" onSubmit={save}>
         {sections.filter((item) => item.id === section).map(({id,title,subtitle,icon:Icon}) => <div key={id}>
           <div className="profile-form-heading"><span className="profile-form-icon"><Icon size={19}/></span><div><h3>{title}</h3><p>{subtitle}</p></div></div>
-          <div className="profile-fields">{fields[id].map(([key,label,type,options]) => <label key={key} className={type === 'textarea' ? 'field-wide' : ''}>{label}{type === 'select' ? <select value={draft[key] || ''} onChange={(e) => change(key,e.target.value)}>{options.map((option) => <option key={option}>{option}</option>)}</select> : type === 'textarea' ? <textarea rows={3} value={draft[key] || ''} onChange={(e) => change(key,e.target.value)} placeholder="Contanos un poquito más..." /> : <input type={type} min={type === 'number' ? 0 : undefined} step={type === 'number' ? '0.1' : undefined} value={draft[key] || ''} onChange={(e) => change(key,e.target.value)} placeholder={label} />}</label>)}</div>
+          <div className="profile-fields">{fields[id].map(([key,label,type,options]) => <label key={key} className={type === 'textarea' ? 'field-wide' : ''}>{label}{type === 'select' ? <select value={draft[key] || ''} onChange={(e) => change(key,e.target.value)}>{options.map((option) => <option key={option}>{option}</option>)}</select> : type === 'textarea' ? <textarea rows={3} value={draft[key] || ''} onChange={(e) => change(key,e.target.value)} placeholder="Contanos un poquito más..." /> : <input type={type} min={type === 'number' ? 0 : undefined} step={type === 'number' ? '0.1' : undefined} value={draft[key] || ''} onChange={(e) => change(key,e.target.value)} placeholder={label} />}{type === 'select' && draft[key] === 'Otro' && <input aria-label={`${label}: especificar`} value={draft[key + 'Other'] || ''} onChange={(e) => change(key + 'Other', e.target.value)} placeholder={`¿Cuál es la ${label.toLowerCase()}?`} required />}</label>)}</div>
         </div>)}
         <div className="profile-form-footer"><span><Info size={14}/> Podés dejar en blanco lo que prefieras.</span><button className="primary-button" type="submit"><Save size={16}/>{saved ? '¡Guardado!' : 'Guardar cambios'}</button></div>
       </form>

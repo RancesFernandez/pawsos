@@ -1,11 +1,12 @@
-import { Heart, LayoutDashboard, QrCode, BookHeart, Settings, PawPrint, ChevronRight } from 'lucide-react';
+import { Heart, LayoutDashboard, QrCode, BookHeart, Settings, PawPrint, ChevronRight, Trophy } from 'lucide-react';
 import './Sidebar.css';
 
 const navItems = [
   { id: 'home', label: 'Resumen', icon: LayoutDashboard },
   { id: 'profile', label: 'Ficha de mi mascota', icon: PawPrint },
   { id: 'qr', label: 'Mi placa QR', icon: QrCode },
-  { id: 'diary', label: 'Diario de huellitas', icon: BookHeart }
+  { id: 'diary', label: 'Diario de huellitas', icon: BookHeart },
+  { id: 'ranking', label: 'Club de Buenas Huellas', icon: Trophy }
 ];
 
 export default function Sidebar({ active, onNavigate, pet }) {

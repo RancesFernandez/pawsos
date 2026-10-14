@@ -1,19 +1,14 @@
 import { Camera, PawPrint } from 'lucide-react';
 import './PetAvatar.css';
+import { compressImage } from '../../utils/compressImage';
 
 export default function PetAvatar({ pet, size = 'large', editable = false, onPhotoChange }) {
-  const handleChange = (event) => {
+  const handleChange = async (event) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    if (!file.type.startsWith('image/')) return;
-    if (file.size > 3 * 1024 * 1024) {
-      window.alert('La foto debe pesar menos de 3 MB.');
-      event.target.value = '';
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => onPhotoChange?.(reader.result);
-    reader.readAsDataURL(file);
+    try { onPhotoChange?.(await compressImage(file, 180 * 1024)); }
+    catch (error) { window.alert(error.message || 'No se pudo optimizar la foto.'); }
+    event.target.value = '';
   };
   return (
     <div className={`pet-avatar pet-avatar-${size}`}>
