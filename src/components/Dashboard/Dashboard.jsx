@@ -85,42 +85,6 @@ export default function Dashboard({ pet, entries, onNavigate }) {
           Ver ficha completa <ArrowRight size={14} />
         </button>
       </div>
-      <div className="stats-grid">
-        <StatCard
-          icon={Cake}
-          label="Edad actual"
-          value={age}
-          note="SU ETAPA"
-          tone="green"
-        />
-        <StatCard
-          icon={Heart}
-          label="Peso registrado"
-          value={pet.weight ? `${pet.weight} kg` : "Sin dato"}
-          note="BIENESTAR"
-          tone="orange"
-        />
-        <StatCard
-          icon={CalendarDays}
-          label="Próximo cumple"
-          value={
-            daysToBirthday === null
-              ? "Sin fecha"
-              : daysToBirthday === 0
-                ? "¡Hoy!"
-                : `${daysToBirthday} días`
-          }
-          note="PARA CELEBRAR"
-          tone="lilac"
-        />
-        <StatCard
-          icon={BookIcon}
-          label="Recuerdos guardados"
-          value={entries.length}
-          note="TU HISTORIA"
-          tone="blue"
-        />
-      </div>
       <div className="dashboard-columns">
         <div className="pet-overview card-panel">
           <div className="panel-heading">
@@ -211,6 +175,42 @@ export default function Dashboard({ pet, entries, onNavigate }) {
             <ChevronRight size={16} />
           </button>
         </div>
+      </div>
+      <div className="stats-grid">
+        <StatCard
+          icon={Cake}
+          label="Edad actual"
+          value={age}
+          note="SU ETAPA"
+          tone="green"
+        />
+        <StatCard
+          icon={Heart}
+          label="Peso registrado"
+          value={pet.weight ? `${pet.weight} kg` : "Sin dato"}
+          note="BIENESTAR"
+          tone="orange"
+        />
+        <StatCard
+          icon={CalendarDays}
+          label="Próximo cumple"
+          value={
+            daysToBirthday === null
+              ? "Sin fecha"
+              : daysToBirthday === 0
+                ? "¡Hoy!"
+                : `${daysToBirthday} días`
+          }
+          note="PARA CELEBRAR"
+          tone="lilac"
+        />
+        <StatCard
+          icon={BookIcon}
+          label="Recuerdos guardados"
+          value={entries.length}
+          note="TU HISTORIA"
+          tone="blue"
+        />
       </div>
       <div className="recent-panel card-panel">
         <div className="panel-heading">

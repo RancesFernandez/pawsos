@@ -145,6 +145,7 @@
 }
 .stats-grid {
   display: grid;
+  margin-top: 17px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
 }
@@ -464,6 +465,7 @@
   }
   .stats-grid {
     gap: 8px;
+    margin-top: 12px;
   }
   .dashboard-columns {
     margin-top: 12px;
