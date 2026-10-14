@@ -20,6 +20,7 @@ export default function PublicPet({ pet, onBack }) {
       <div className="public-cover"><div className="public-cover-sun"/><span>SIEMPRE CERCA DE CASA <Heart size={13} fill="currentColor"/></span></div>
       <div className="public-main-info"><PetAvatar pet={pet} size="large"/><div><span className="public-found-label">¡HOLA! SOY</span><h1>{pet.name || 'Una mascota'}</h1><p>{[pet.breed,pet.species==='Otro'?(pet.speciesOther||'Otra especie'):pet.species].filter(Boolean).join(' · ')}</p><div className="public-tags">{pet.birthDate && <span>{getAgeLabel(pet.birthDate)}</span>}{pet.sex && <span>{pet.sex}</span>}</div></div></div>
       <p className="public-bio">{pet.bio || pet.temperament || 'Soy parte de una familia que me quiere mucho. ¡Ayudame a volver a casa!'}</p>
+      {pet.reward?.trim() && <div className="public-reward-box"><span className="public-reward-icon">♥</span><div><strong>Recompensa por ayudarme a volver</strong><p>{pet.reward}</p></div></div>}
       <div className="public-contact-heading"><span>¿ME ENCONTRASTE?</span><p>¡Gracias por ayudarme a volver con mi familia!</p></div>
       <div className="public-contact-actions">
         {phone && <a className="public-call" href={`tel:${phone}`}><Phone size={18}/><span><strong>Llamar a mi familia</strong><small>Contacto directo</small></span></a>}

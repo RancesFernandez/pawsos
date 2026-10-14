@@ -13,7 +13,7 @@ export default function PetAvatar({ pet, size = 'large', editable = false, onPho
   return (
     <div className={`pet-avatar pet-avatar-${size}`}>
       {pet.photo ? <img src={pet.photo} alt={`Foto de ${pet.name}`} /> : <div className="avatar-placeholder"><PawPrint size={size === 'large' ? 36 : 24} /></div>}
-      {editable && <label className="avatar-edit" title="Cambiar foto"><Camera size={15} /><input type="file" accept="image/*" onChange={handleChange} /></label>}
+      {editable && <label className="avatar-edit" title="Cambiar foto" aria-label="Subir o cambiar foto de la mascota"><Camera size={15} /><input type="file" accept="image/*" onChange={handleChange} /></label>}
     </div>
   );
 }

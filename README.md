@@ -49,3 +49,10 @@ El QR apunta a `/#/pet/ID`. Esa ruta consulta `publicPets/{ID}` sin pedir autent
 3. La ficha QR pública muestra campos de contacto y de emergencia; el dueño debe revisar esos campos antes de publicar.
 4. Probar en un proyecto Firebase de desarrollo y verificar reglas con usuarios distintos antes de cargar datos reales.
 5. No se implementó restablecimiento de contraseña ni verificación de email en esta iteración.
+
+## Responsive, imágenes y caché
+- La interfaz incluye ajustes específicos para pantallas pequeñas, con formularios y tarjetas que se adaptan sin desbordamientos horizontales.
+- Las fotos se redimensionan y comprimen en el navegador (WebP cuando está disponible) antes de guardarse; se limita el archivo original a 25 MB y se intenta mantener la imagen optimizada cerca de 140 KB.
+- La recompensa es opcional y, si se completa, aparece tanto en la ficha pública que abre el QR como en la vista de la placa QR.
+- El service worker conserva únicamente recursos estáticos necesarios para cargar la aplicación; no hay caché de ejecución para peticiones dinámicas y se limpian cachés antiguas.
+- No incluyas `.env.local` en repositorios públicos ni compartas credenciales de configuración. Copiá `.env.example` a `.env.local` y completá los valores de tu proyecto Firebase.

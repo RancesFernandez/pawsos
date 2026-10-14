@@ -7,6 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: { cleanupOutdatedCaches: true, clientsClaim: true, skipWaiting: true, runtimeCaching: [], globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'] },
       includeAssets: ['favicon.svg'],
       manifest: {
         name: 'Huellita — Ficha QR para mascotas',

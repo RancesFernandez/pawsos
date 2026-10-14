@@ -29,6 +29,7 @@ export default function QRCard({ pet, onNavigate }) {
           <div className="qr-card-top"><span className="mini-brand"><span>♥</span> huellita.</span><span className="safe-pill"><ShieldCheck size={12}/> FICHA SEGURA</span></div>
           <div className="qr-pet-info"><PetAvatar pet={pet} size="medium"/><div><h3>{pet.name || 'Mi mascota'}</h3><p>{[pet.breed, pet.species].filter(Boolean).join(' · ')}</p><span>MI FAMILIA ME ESTÁ BUSCANDO</span></div></div>
           <div className="qr-code-frame" ref={qrRef}><QRCodeCanvas value={profileUrl} size={178} level="H" includeMargin bgColor="#fffefa" fgColor="#294b3b" imageSettings={{src:'/favicon.svg',height:26,width:26,excavate:true}} /></div>
+          {pet.reward?.trim() && <div className="qr-reward"><strong>♥ Recompensa</strong><span>{pet.reward}</span></div>}
           <div className="qr-scan-copy"><strong>¿Me encontraste?</strong><span>Escaneá el código para ver cómo ayudarme a volver a casa.</span></div>
           <div className="qr-card-footer"><PawMark/> <span>GRACIAS POR CUIDARME</span><PawMark/></div>
         </div>

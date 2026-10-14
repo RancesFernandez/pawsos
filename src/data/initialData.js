@@ -11,6 +11,7 @@ export const starterPet = {
   weight: '12.4',
   color: 'Canela y blanco',
   microchip: '',
+  reward: '',
   photo: '',
   temperament: 'Curiosa, mimosa y un poquito glotona',
   bio: 'Mi lugar favorito es el sillón y nunca digo que no a un paseo.',
