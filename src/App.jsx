@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Heart, X, LogOut } from "lucide-react";
+import { Heart, X, LogOut, PawPrint } from "lucide-react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { emptyPet, starterEntries } from "./data/initialData";
 import { useLocalStorage } from "./hooks/useLocalStorage";
@@ -209,7 +209,12 @@ export default function App() {
   if (firebaseConfigured && !user)
     return <AuthGate onDemo={() => setDemo(true)} />;
   if (firebaseConfigured && user && !dataReady)
-    return <div className="public-loading">Cargando tu mascota…</div>;
+    return (
+      <div className="public-loading paw-loading" role="status" aria-label="Cargando">
+        <PawPrint className="paw-loading-icon" size={42} strokeWidth={1.8} />
+        <span className="paw-loading-spinner" aria-hidden="true" />
+      </div>
+    );
   if (!user && !demo) return <AuthGate onDemo={() => setDemo(true)} />;
   return (
     <div className="app-shell">

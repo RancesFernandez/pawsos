@@ -136,6 +136,32 @@
   text-align: center;
   color: #59494c;
 }
+.paw-loading {
+  gap: 13px;
+  color: #3f5368;
+}
+.paw-loading-icon {
+  animation: paw-breathe 1.5s ease-in-out infinite;
+}
+.paw-loading-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #dce2e8;
+  border-top-color: #3f5368;
+  border-radius: 50%;
+  animation: paw-spin 0.75s linear infinite;
+}
+@keyframes paw-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes paw-breathe {
+  0%, 100% { opacity: 0.72; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .paw-loading-icon,
+  .paw-loading-spinner { animation-duration: 2.5s; }
+}
 .public-missing p {
   color: #93817d;
 }
