@@ -56,3 +56,25 @@ El QR apunta a `/#/pet/ID`. Esa ruta consulta `publicPets/{ID}` sin pedir autent
 - La recompensa es opcional y, si se completa, aparece tanto en la ficha pública que abre el QR como en la vista de la placa QR.
 - El service worker conserva únicamente recursos estáticos necesarios para cargar la aplicación; no hay caché de ejecución para peticiones dinámicas y se limpian cachés antiguas.
 - No incluyas `.env.local` en repositorios públicos ni compartas credenciales de configuración. Copiá `.env.example` a `.env.local` y completá los valores de tu proyecto Firebase.
+
+
+## Cambios de privacidad y perfiles por usuario
+
+- Una cuenta nueva empieza con la ficha de mascota vacía; no se crea ni se muestra una mascota de ejemplo automáticamente.
+- Las fichas privadas y el diario se guardan en `users/{uid}/pets/main` y `users/{uid}/entries/{entryId}`. Las reglas de `firestore.rules` permiten leer/escribir esas rutas únicamente al usuario cuyo UID coincide con la sesión.
+- El ranking sigue siendo comunitario: `leaderboardProfiles/{uid}` es público y contiene solo alias, puntos, especie, tipo y nombre de mascota; no contiene correo ni teléfono. No se mezclan mascotas entre cuentas.
+- La foto de la mascota aparece en el bloque inferior izquierdo de la barra lateral. Si aún no se cargó una foto, se muestra un icono de huella.
+- La ruta `publicPets/{petId}` sigue siendo pública para que el QR funcione sin iniciar sesión. Es distinta del perfil privado; revisá los datos de contacto/salud que se publican allí.
+
+### ¿Tengo que modificar la base de datos?
+
+No hace falta crear tablas/colecciones nuevas. Para aplicar y verificar los permisos:
+
+1. Firebase Console → **Firestore Database** → **Reglas**.
+2. Copiá el archivo `firestore.rules` incluido en este proyecto y pulsá **Publicar**.
+3. En **Authentication → Users**, registrá dos cuentas de prueba distintas.
+4. Con cada cuenta, guardá una mascota distinta. Confirmá en Firestore que cada una aparece en `users/{UID_DE_ESE_USUARIO}/pets/main`.
+5. Comprobá que el ranking contiene un documento por UID en `leaderboardProfiles`; esa colección debe poder leerse por todos, pero cada usuario solo debe escribir su propio documento.
+6. Cerrá sesión e ingresá con la otra cuenta: la app carga su ficha desde su propia ruta y no debe mostrar la anterior.
+
+**Perfiles viejos contaminados:** el cambio no borra automáticamente datos que ya estén guardados. Si encontrás una mascota de demostración dentro de `users/{uid}/pets/main`, abrí ese documento y eliminálo solo si confirmaste que es un dato de ejemplo incorrecto. Si también se creó una ficha QR falsa en `publicPets/{petId}`, eliminá únicamente ese documento asociado. No borres la colección `leaderboardProfiles`: es el ranking compartido y sus puntos se conservan.

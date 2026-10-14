@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Heart, X, LogOut } from "lucide-react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { starterPet, starterEntries } from "./data/initialData";
+import { emptyPet, starterEntries } from "./data/initialData";
 import { useLocalStorage } from "./hooks/useLocalStorage";
 import { auth, db, firebaseConfigured } from "./firebase";
 import {
@@ -45,7 +45,7 @@ const pageMeta = {
   },
 };
 export default function App() {
-  const [pet, setPetLocal] = useLocalStorage("huellita-pet-v1", starterPet);
+  const [pet, setPetLocal] = useLocalStorage("huellita-pet-v1", emptyPet);
   const [entries, setEntriesLocal] = useLocalStorage(
     "huellita-entries-v1",
     starterEntries,
@@ -65,20 +65,23 @@ export default function App() {
     return onAuthStateChanged(auth, async (current) => {
       setUser(current);
       setAuthReady(true);
+      if (!current) {
+        setPetLocal({ ...emptyPet });
+        setEntriesLocal([]);
+        setPoints(0);
+        setDataReady(false);
+        return;
+      }
       setDemo(false);
       setDataReady(false);
       if (current) {
+        // Clear any previous browser cache before loading this account's own data.
+        setPetLocal({ ...emptyPet });
+        setEntriesLocal([]);
+        setPoints(0);
         try {
           const data = await loadUserData(current.uid);
-          if (data.pet) setPetLocal(data.pet);
-          else {
-            const firstPet = await savePetRemote(
-              current.uid,
-              starterPet,
-              current,
-            );
-            setPetLocal(firstPet);
-          }
+          setPetLocal(data.pet || { ...emptyPet });
           setEntriesLocal(data.entries);
           const { doc, getDoc } = await import("firebase/firestore");
           const snap = await getDoc(
@@ -88,6 +91,8 @@ export default function App() {
           setDataReady(true);
         } catch (e) {
           console.error("No se pudo cargar el perfil de Firebase", e);
+          setPetLocal({ ...emptyPet });
+          setEntriesLocal([]);
           setDataReady(true);
         }
       }
@@ -203,6 +208,8 @@ export default function App() {
     return <div className="public-loading">Preparando tu espacio…</div>;
   if (firebaseConfigured && !user)
     return <AuthGate onDemo={() => setDemo(true)} />;
+  if (firebaseConfigured && user && !dataReady)
+    return <div className="public-loading">Cargando tu mascota…</div>;
   if (!user && !demo) return <AuthGate onDemo={() => setDemo(true)} />;
   return (
     <div className="app-shell">

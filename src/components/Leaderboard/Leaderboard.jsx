@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Trophy, Medal, RefreshCw, PawPrint } from "lucide-react";
 import { loadLeaderboard } from "../../services/firebaseData";
 import { firebaseConfigured } from "../../firebase";
@@ -21,33 +21,7 @@ export default function Leaderboard({ entries, pet, user }) {
   useEffect(() => {
     refresh();
   }, []);
-  const demoPeople = useMemo(
-    () => [
-      {
-        displayName: "Sofi y Milo",
-        points: 95,
-        species: "Perro",
-        animalType: "Mascota doméstica",
-        petName: "Milo",
-      },
-      {
-        displayName: "Vale y Nube",
-        points: 70,
-        species: "Gato",
-        animalType: "Mascota doméstica",
-        petName: "Nube",
-      },
-      {
-        displayName: "Dani y Kiwi",
-        points: 45,
-        species: "Ave",
-        animalType: "Mascota doméstica",
-        petName: "Kiwi",
-      },
-    ],
-    [],
-  );
-  const source = firebaseConfigured ? people : demoPeople;
+  const source = firebaseConfigured ? people : [];
   const species = [...new Set(source.map((x) => x.species).filter(Boolean))];
   const kinds = [...new Set(source.map((x) => x.animalType).filter(Boolean))];
   const shown = source

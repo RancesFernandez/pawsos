@@ -68,8 +68,12 @@ export default function Sidebar({ active, onNavigate, pet }) {
           <span>Editar información</span>
         </button>
         <div className="sidebar-user">
-          <div className="user-avatar">
-            {pet.name?.slice(0, 1).toUpperCase() || "🐾"}
+          <div className="user-avatar" aria-label={`Foto de ${pet.name || "mi mascota"}`}>
+            {pet.photo ? (
+              <img src={pet.photo} alt={`Foto de ${pet.name || "mi mascota"}`} />
+            ) : (
+              <PawPrint size={18} />
+            )}
           </div>
           <div>
             <strong>{pet.name || "Mi mascota"}</strong>
