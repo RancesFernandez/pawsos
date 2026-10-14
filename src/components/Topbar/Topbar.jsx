@@ -11,7 +11,7 @@ export default function Topbar({ title, subtitle, onAdd, onMobileMenu }) {
       <div className="topbar-actions">
         <button className="icon-button search-button" aria-label="Buscar" onClick={() => document.getElementById('diary-search')?.focus()}><Search size={18} /></button>
         <button className="icon-button notification-button" aria-label="Notificaciones"><Bell size={18} /><i /></button>
-        <button className="primary-button top-add" onClick={onAdd}><Plus size={17} /> Añadir recuerdo</button>
+        <button className="primary-button top-add" onClick={onAdd}><Plus size={17} /> Añadir registro</button>
       </div>
     </header>
   );

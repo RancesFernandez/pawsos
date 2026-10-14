@@ -28,7 +28,7 @@ export default function Sidebar({ active, onNavigate, pet }) {
         <div className="side-tip">
           <span className="tip-heart"><Heart size={17} fill="currentColor" /></span>
           <p>Los pequeños momentos también cuentan.</p>
-          <button onClick={() => onNavigate('diary')}>Guardar un recuerdo <ChevronRight size={14} /></button>
+          <button onClick={() => onNavigate('diary')}>Ir al diario <ChevronRight size={14} /></button>
         </div>
         <button className="nav-item settings-item" onClick={() => onNavigate('profile')}><Settings size={18} /><span>Editar información</span></button>
         <div className="sidebar-user">

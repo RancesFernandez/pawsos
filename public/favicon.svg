@@ -1,1 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" rx="20" fill="#315c4c"/><path d="M20 26c-5-1-8-8-4-11 5-3 10 4 11 9m17 2c5-1 8-8 4-11-5-3-10 4-11 9M15 38c-2-5 3-10 8-8 4 1 5 5 9 5s5-4 9-5c5-2 10 3 8 8-3 8-11 14-17 14S18 46 15 38" fill="#f8f7f2"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="19" fill="#3f5368"/>
+  <g fill="#fffaf4">
+    <ellipse cx="17" cy="24" rx="6.3" ry="8" transform="rotate(-24 17 24)"/>
+    <ellipse cx="29" cy="15" rx="6.1" ry="8" transform="rotate(-8 29 15)"/>
+    <ellipse cx="42" cy="17" rx="6.1" ry="8" transform="rotate(12 42 17)"/>
+    <ellipse cx="51" cy="28" rx="5.7" ry="7.4" transform="rotate(28 51 28)"/>
+    <path d="M32 27c-7.2 0-17 11.2-17 19.3C15 53 20.5 56 26 53.6c3.5-1.5 5-2.7 7-2.7s4.2 1.4 7.5 2.7C46 56 51 52 50 46.2 48.7 37.4 39.3 27 32 27Z"/>
+  </g>
+</svg>

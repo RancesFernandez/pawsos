@@ -14,12 +14,13 @@ export default defineConfig({
         short_name: 'Huellita',
         description: 'La ficha digital y el diario de bienestar de tu mascota.',
         theme_color: '#f8f7f2',
+        // Icons use a centered paw mark with generous safe-area padding for mobile launchers.
         background_color: '#f8f7f2',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
-          { src: '/pwa-192.png', sizes: '192x192', type: 'image/png' },
-          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png' }
+          { src: '/pwa-192.png', sizes: '192x192', type: 'image/png', purpose: 'any' },
+          { src: '/pwa-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
         ]
       }
     })
