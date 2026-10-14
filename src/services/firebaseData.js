@@ -8,6 +8,7 @@ import {
   setDoc,
   orderBy,
   limit,
+  runTransaction,
 } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -61,27 +62,36 @@ export async function savePet(uid, pet, user) {
   };
   await setDoc(doc(db, "users", uid, "pets", "main"), full);
   await setDoc(doc(db, "publicPets", full.id), publicFields(full, uid));
-  await setDoc(
-    doc(db, "leaderboardProfiles", uid),
-    {
-      uid,
-      displayName:
-        user?.displayName || user?.email?.split("@")[0] || "Amante de mascotas",
-      // No escribir "points" al editar la mascota. El puntaje pertenece
-      // al perfil de cuidado y solo updateLeaderboard debe modificarlo.
-      species:
-        full.species === "Otro"
-          ? full.speciesOther || "Otra especie"
-          : full.species || "Otra",
-      animalType:
-        full.animalType === "Otro"
-          ? full.animalTypeOther || "Otro tipo"
-          : full.animalType || "Mascota doméstica",
-      petName: full.name || "Mi mascota",
-      updatedAt: new Date().toISOString(),
-    },
-    { merge: true },
-  );
+  // Actualizar los datos visibles del ranking sin perder nunca los puntos.
+  // La transacción evita que una edición de mascota pise una actualización
+  // concurrente del puntaje de cuidado.
+  const leaderboardRef = doc(db, "leaderboardProfiles", uid);
+  await runTransaction(db, async (transaction) => {
+    const leaderboardSnap = await transaction.get(leaderboardRef);
+    const existing = leaderboardSnap.exists() ? leaderboardSnap.data() : {};
+    transaction.set(
+      leaderboardRef,
+      {
+        uid,
+        displayName:
+          user?.displayName || user?.email?.split("@")[0] || "Amante de mascotas",
+        points: Number.isFinite(Number(existing.points))
+          ? Number(existing.points)
+          : 0,
+        species:
+          full.species === "Otro"
+            ? full.speciesOther || "Otra especie"
+            : full.species || "Otra",
+        animalType:
+          full.animalType === "Otro"
+            ? full.animalTypeOther || "Otro tipo"
+            : full.animalType || "Mascota doméstica",
+        petName: full.name || "Mi mascota",
+        updatedAt: new Date().toISOString(),
+      },
+      { merge: true },
+    );
+  });
   return full;
 }
 export async function saveEntries(uid, entries) {
