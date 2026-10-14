@@ -11,6 +11,7 @@ import {
   getPublicPet,
   updateLeaderboard,
 } from "./services/firebaseData";
+import { Analytics } from "@vercel/analytics/react";
 import Sidebar from "./components/Sidebar/Sidebar";
 import Topbar from "./components/Topbar/Topbar";
 import Dashboard from "./components/Dashboard/Dashboard";
@@ -20,6 +21,7 @@ import Diary from "./components/Diary/Diary";
 import PublicPet from "./components/PublicPet/PublicPet";
 import AuthGate from "./components/AuthGate/AuthGate";
 import Leaderboard from "./components/Leaderboard/Leaderboard";
+
 import "./App.css";
 
 const pageMeta = {
@@ -50,6 +52,7 @@ export default function App() {
     "huellita-entries-v1",
     starterEntries,
   );
+
   const [active, setActive] = useState("home");
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -210,7 +213,11 @@ export default function App() {
     return <AuthGate onDemo={() => setDemo(true)} />;
   if (firebaseConfigured && user && !dataReady)
     return (
-      <div className="public-loading paw-loading" role="status" aria-label="Cargando">
+      <div
+        className="public-loading paw-loading"
+        role="status"
+        aria-label="Cargando"
+      >
         <PawPrint className="paw-loading-icon" size={42} strokeWidth={1.8} />
         <span className="paw-loading-spinner" aria-hidden="true" />
       </div>
@@ -278,6 +285,7 @@ export default function App() {
           <span>Una demo que crece con vos y tu mejor amigo.</span>
         </footer>
       </main>
+      <Analytics />
     </div>
   );
 }
