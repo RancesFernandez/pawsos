@@ -15,6 +15,22 @@ service cloud.firestore {
       allow create, update: if signedIn() && request.resource.data.ownerUid == request.auth.uid && request.resource.data.keys().hasOnly(['id','ownerUid','name','species','speciesOther','animalType','animalTypeOther','breed','birthDate','sex','weight','color','photo','temperament','bio','ownerName','phone','whatsapp','city','allergies','conditions','medication','fears','emergencyNotes','food','foodAmount','foodSchedule','walkNotes','vetName','vetPhone','updatedAt']);
       allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
     }
+    // Avisos públicos de mascotas perdidas. El contacto y la foto son visibles para cualquiera.
+    match /lostPetAlerts/{alertId} {
+      allow read: if true;
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.status == 'searching'
+        && request.resource.data.name is string
+        && request.resource.data.city is string
+        && request.resource.data.contact is string
+        && request.resource.data.details is string
+        && request.resource.data.keys().hasOnly(['name','species','city','contact','details','photo','displayName','ownerUid','status','createdAt','createdAtServer']);
+      allow update: if signedIn() && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status','resolvedAt','resolvedBy'])
+        && request.resource.data.status == 'found';
+      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+    }
     // Este documento contiene únicamente alias, puntos y categorías del ranking. Nunca email ni teléfono.
     match /leaderboardProfiles/{uid} {
       allow read: if true;

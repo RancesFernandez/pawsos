@@ -9,6 +9,9 @@ import {
   orderBy,
   limit,
   runTransaction,
+  addDoc,
+  updateDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../firebase";
 
@@ -140,4 +143,21 @@ export async function updateLeaderboard(uid, points, pet, user) {
     },
     { merge: true },
   );
+}
+
+// Avisos públicos de mascotas perdidas en la sección Comunidad.
+export async function loadLostPetAlerts() {
+  const q = query(collection(db, "lostPetAlerts"), orderBy("createdAt", "desc"), limit(100));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+export async function createLostPetAlert(uid, alert) {
+  const ref = await addDoc(collection(db, "lostPetAlerts"), {
+    ...alert, ownerUid: uid, status: "searching", createdAt: new Date().toISOString(),
+    createdAtServer: serverTimestamp(),
+  });
+  return { ...alert, id: ref.id, ownerUid: uid, status: "searching", createdAt: new Date().toISOString() };
+}
+export async function resolveLostPetAlert(alertId, uid) {
+  await updateDoc(doc(db, "lostPetAlerts", alertId), { status: "found", resolvedAt: new Date().toISOString(), resolvedBy: uid });
 }

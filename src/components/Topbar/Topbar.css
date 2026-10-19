@@ -52,16 +52,6 @@
   border-color: #a7bba5;
   color: #3f5368;
 }
-.notification-button i {
-  position: absolute;
-  right: 9px;
-  top: 8px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #e49a67;
-  border: 1px solid #fffefa;
-}
 .primary-button {
   display: inline-flex;
   align-items: center;

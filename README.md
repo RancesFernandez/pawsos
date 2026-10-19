@@ -78,3 +78,24 @@ No hace falta crear tablas/colecciones nuevas. Para aplicar y verificar los perm
 6. Cerrá sesión e ingresá con la otra cuenta: la app carga su ficha desde su propia ruta y no debe mostrar la anterior.
 
 **Perfiles viejos contaminados:** el cambio no borra automáticamente datos que ya estén guardados. Si encontrás una mascota de demostración dentro de `users/{uid}/pets/main`, abrí ese documento y eliminálo solo si confirmaste que es un dato de ejemplo incorrecto. Si también se creó una ficha QR falsa en `publicPets/{petId}`, eliminá únicamente ese documento asociado. No borres la colección `leaderboardProfiles`: es el ranking compartido y sus puntos se conservan.
+
+
+## Cambios de esta versión: fotos ampliables y avisos de mascotas perdidas
+
+### Fotos en grande
+- Las fotos de perfil se pueden abrir desde el resumen, ficha, placa QR, navegación lateral y ficha pública.
+- Las fotos de los registros del diario, las vistas previas de fotos y las fotos de avisos de la comunidad también se abren en un visor de pantalla completa.
+- El visor se cierra con la X, tocando fuera de la imagen o con la tecla Escape. En móvil respeta el alto visible de pantalla.
+
+### Avisos de mascotas perdidas
+- En **Club de Buenas Huellas → Mascotas perdidas** se puede publicar nombre, descripción, zona, contacto, detalles y foto. Los avisos activos son visibles para toda la comunidad. El dueño del aviso puede marcar a la mascota como encontrada.
+- En Firebase se crea automáticamente la colección `lostPetAlerts` al publicar el primer aviso. No hay que crear documentos a mano.
+- **Sí hay que publicar las nuevas reglas de Firestore:** abrí Firebase Console → Firestore Database → Reglas, pegá el archivo `firestore.rules` de este ZIP y pulsá Publicar. Las reglas permiten leer los avisos públicamente, pero solo quien publicó un aviso puede cerrarlo o borrarlo.
+- Los avisos hacen visible el llamado de ayuda dentro de la sección Comunidad; esta versión **no envía notificaciones push al teléfono ni mensajes automáticos**. Para eso se necesita configurar Firebase Cloud Messaging, solicitar permiso de notificaciones a cada usuario y una función de servidor que distribuya el aviso.
+- El número de contacto y la foto del aviso son públicos. Publicá solo un número que aceptes compartir y evita poner una dirección exacta de domicilio.
+
+### Probar antes de publicar
+1. Ejecutá `npm install` y `npm run dev`.
+2. Probá abrir una foto desde el resumen, la ficha, el menú lateral y un registro del diario en escritorio y móvil.
+3. Con Firebase configurado, publicá un aviso con una cuenta y verificá que otra cuenta pueda verlo. Confirmá que solo el dueño pueda marcarlo como encontrada.
+4. En esta entrega no se pudo completar una compilación de producción en el entorno de preparación por una dependencia nativa opcional de Rollup ausente; por eso, ejecutá `npm run build` localmente antes de desplegar.

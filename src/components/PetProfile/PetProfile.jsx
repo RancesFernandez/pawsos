@@ -123,6 +123,12 @@ export default function PetProfile({ pet, setPet, onNavigate }) {
     window.setTimeout(() => setSaved(false), 2800);
   };
 
+  const requiredFields = ["name", "species", "animalType"];
+  if (draft.species === "Otro") requiredFields.push("speciesOther");
+  if (draft.animalType === "Otro") requiredFields.push("animalTypeOther");
+  const completedRequired = requiredFields.filter((key) => String(draft[key] || "").trim()).length;
+  const completion = Math.round((completedRequired / requiredFields.length) * 100);
+
   return (
     <section className="profile-page">
       <div className="profile-hero">
@@ -146,22 +152,16 @@ export default function PetProfile({ pet, setPet, onNavigate }) {
         <div className="profile-completion">
           <span>Tu ficha</span>
           <strong>
-            {Math.round(
-              (Object.values(draft).filter((v) => String(v || "").trim())
-                .length /
-                Object.keys(draft).length) *
-                100,
-            )}
-            %
+{completion}%
           </strong>
           <div>
             <i
               style={{
-                width: `${Math.round((Object.values(draft).filter((v) => String(v || "").trim()).length / Object.keys(draft).length) * 100)}%`,
+                width: `${completion}%`,
               }}
             />
           </div>
-          <small>¡Cada detalle suma!</small>
+          <small>Datos esenciales completos</small>
         </div>
       </div>
       <div className="profile-layout">
@@ -262,6 +262,7 @@ export default function PetProfile({ pet, setPet, onNavigate }) {
           </div>
         </form>
       </div>
+
     </section>
   );
 }

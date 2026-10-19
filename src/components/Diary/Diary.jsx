@@ -13,6 +13,7 @@ import {
 import { formatDate } from "../../utils/pet";
 import "./Diary.css";
 import { compressImage } from "../../utils/compressImage";
+import { openImagePreview } from "../../utils/imagePreview";
 
 const types = [
   { id: "walk", label: "Paseo", icon: Footprints, color: "green" },
@@ -21,7 +22,7 @@ const types = [
   { id: "memory", label: "Recuerdo", icon: Sparkles, color: "lilac" },
 ];
 
-export default function Diary({ pet, entries, setEntries, onPoints }) {
+export default function Diary({ pet, entries, setEntries, onSaveEntry }) {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -47,12 +48,14 @@ export default function Diary({ pet, entries, setEntries, onPoints }) {
   };
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const filtered = useMemo(
     () =>
       entries
         .filter(
           (entry) =>
-            (filter === "all" || entry.type === filter) &&
+            (["walk", "food", "health", "memory"].includes(entry.type)) && (filter === "all" || entry.type === filter) &&
             `${entry.title} ${entry.note}`
               .toLowerCase()
               .includes(search.toLowerCase()),
@@ -61,23 +64,27 @@ export default function Diary({ pet, entries, setEntries, onPoints }) {
     [entries, filter, search],
   );
 
-  const addEntry = (event) => {
+  const addEntry = async (event) => {
     event.preventDefault();
-    if (!form.title.trim()) return;
+    if (!form.title.trim() || saving) return;
     const entry = {
       ...form,
       id: crypto.randomUUID?.() || String(Date.now()),
       date: new Date().toISOString(),
     };
-    setEntries((current) => [entry, ...current]);
-    onPoints?.(10);
-    setForm({
-      type: filter !== "all" ? filter : "memory",
-      title: "",
-      note: "",
-      photo: "",
-    });
-    setShowForm(false);
+    setSaving(true);
+    setSaveError("");
+    try {
+      if (onSaveEntry) await onSaveEntry(entry);
+      else setEntries((current) => [entry, ...current]);
+      setForm({ type: filter !== "all" ? filter : "memory", title: "", note: "", photo: "" });
+      setShowForm(false);
+    } catch (error) {
+      console.error("No se pudo guardar el registro", error);
+      setSaveError("No se pudo guardar el registro. No se sumaron puntos. Revisá tu conexión e intentá nuevamente.");
+    } finally {
+      setSaving(false);
+    }
   };
   const removeEntry = (id) =>
     setEntries((current) => current.filter((entry) => entry.id !== id));
@@ -187,9 +194,13 @@ export default function Diary({ pet, entries, setEntries, onPoints }) {
             {photoError && <small className="photo-error">{photoError}</small>}
             {form.photo && (
               <img
-                className="entry-photo-preview"
+                className="entry-photo-preview image-zoomable"
                 src={form.photo}
                 alt="Vista previa del recuerdo"
+                role="button"
+                tabIndex={0}
+                onClick={() => openImagePreview(form.photo, "Vista previa del recuerdo")}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), openImagePreview(form.photo, "Vista previa del recuerdo"))}
               />
             )}
             <small className="photo-status">
@@ -206,6 +217,7 @@ export default function Diary({ pet, entries, setEntries, onPoints }) {
               placeholder="Escribí algo lindo, una observación o cómo se sintió..."
             />
           </label>
+          {saveError && <p className="photo-error entry-save-error" role="alert">{saveError}</p>}
           <div className="entry-form-actions">
             <button
               type="button"
@@ -240,10 +252,15 @@ export default function Diary({ pet, entries, setEntries, onPoints }) {
                 </p>
                 {entry.photo && (
                   <img
-                    className="entry-photo"
+                    className="entry-photo image-zoomable"
                     src={entry.photo}
                     alt={`Foto: ${entry.title}`}
                     loading="lazy"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openImagePreview(entry.photo, entry.title || "Foto del diario")}
+                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), openImagePreview(entry.photo, entry.title || "Foto del diario"))}
+                    title="Abrir imagen en grande"
                   />
                 )}
                 <span className={`entry-type type-${type.color}`}>
@@ -275,6 +292,7 @@ export default function Diary({ pet, entries, setEntries, onPoints }) {
           </div>
         )}
       </div>
+
     </section>
   );
 }

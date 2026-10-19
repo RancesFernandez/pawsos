@@ -7,14 +7,17 @@ import {
   PawPrint,
   ChevronRight,
   Trophy,
+  Stethoscope,
 } from "lucide-react";
 import "./Sidebar.css";
+import { openImagePreview } from "../../utils/imagePreview";
 
 const navItems = [
   { id: "home", label: "Resumen", icon: LayoutDashboard },
   { id: "profile", label: "Ficha de mi mascota", icon: PawPrint },
   { id: "qr", label: "Mi placa QR", icon: QrCode },
   { id: "diary", label: "Diario de huellitas", icon: BookHeart },
+  { id: "health", label: "Salud y veterinaria", icon: Stethoscope },
   { id: "ranking", label: "Club de Buenas Huellas", icon: Trophy },
 ];
 
@@ -70,7 +73,7 @@ export default function Sidebar({ active, onNavigate, pet }) {
         <div className="sidebar-user">
           <div className="user-avatar" aria-label={`Foto de ${pet.name || "mi mascota"}`}>
             {pet.photo ? (
-              <img src={pet.photo} alt={`Foto de ${pet.name || "mi mascota"}`} />
+              <img src={pet.photo} alt={`Foto de ${pet.name || "mi mascota"}`} role="button" tabIndex={0} title="Ver foto ampliada" onClick={() => openImagePreview(pet.photo, `Foto de ${pet.name || "mi mascota"}`)} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), openImagePreview(pet.photo, `Foto de ${pet.name || "mi mascota"}`))} />
             ) : (
               <PawPrint size={18} />
             )}

@@ -51,3 +51,7 @@
 .avatar-edit input {
   display: none;
 }
+
+.pet-avatar img[role="button"]{cursor:zoom-in}.pet-avatar img[role="button"]:focus-visible{outline:3px solid #8ea0b2;outline-offset:3px}
+
+.pet-avatar img[role="button"]{cursor:zoom-in}.pet-avatar img[role="button"]:focus-visible{outline:3px solid #8199a9;outline-offset:3px}

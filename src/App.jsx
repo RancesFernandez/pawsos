@@ -21,6 +21,8 @@ import Diary from "./components/Diary/Diary";
 import PublicPet from "./components/PublicPet/PublicPet";
 import AuthGate from "./components/AuthGate/AuthGate";
 import Leaderboard from "./components/Leaderboard/Leaderboard";
+import HealthRecords from "./components/HealthRecords/HealthRecords";
+import ImagePreview from "./components/ImagePreview/ImagePreview";
 
 import "./App.css";
 
@@ -40,6 +42,10 @@ const pageMeta = {
   diary: {
     title: "Diario de huellitas",
     subtitle: "Guardá los momentos que hacen su historia.",
+  },
+  health: {
+    title: "Salud y veterinaria",
+    subtitle: "Vacunas, controles y cuidados importantes en un solo lugar.",
   },
   ranking: {
     title: "Club de Buenas Huellas",
@@ -149,6 +155,15 @@ export default function App() {
         console.error("Error guardando diario", e),
       );
   }, [entries, user, dataReady]);
+  const saveDiaryEntry = async (entry) => {
+    const nextEntries = [entry, ...entries];
+    // In a real account, points are awarded only after Firestore confirms the save.
+    if (user && firebaseConfigured) {
+      await saveEntriesRemote(user.uid, nextEntries);
+    }
+    setEntriesLocal(nextEntries);
+    await awardPoints(10);
+  };
   const awardPoints = async (amount) => {
     const next = points + amount;
     setPoints(next);
@@ -185,6 +200,7 @@ export default function App() {
         <div className="public-loading">Buscando la ficha de la mascota…</div>
       );
     return publicPet ? (
+      <>
       <PublicPet
         pet={publicPet}
         onBack={() => {
@@ -197,6 +213,8 @@ export default function App() {
           setActive("home");
         }}
       />
+      <ImagePreview />
+      </>
     ) : (
       <main className="public-missing">
         <h1>No encontramos esta ficha</h1>
@@ -272,11 +290,14 @@ export default function App() {
             pet={pet}
             entries={entries}
             setEntries={setEntries}
-            onPoints={awardPoints}
+            onSaveEntry={saveDiaryEntry}
           />
         )}
+        {active === "health" && (
+          <HealthRecords entries={entries} setEntries={setEntries} pet={pet} />
+        )}
         {active === "ranking" && (
-          <Leaderboard entries={entries} pet={pet} user={{ ...user, points }} />
+          <Leaderboard entries={entries} pet={pet} user={{ ...user, uid: user?.uid, points }} />
         )}
         <footer className="app-footer">
           <span>
@@ -285,6 +306,7 @@ export default function App() {
           <span>Una demo que crece con vos y tu mejor amigo.</span>
         </footer>
       </main>
+      <ImagePreview />
       <Analytics />
     </div>
   );
