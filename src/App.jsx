@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Heart, X, LogOut, PawPrint } from "lucide-react";
+import { Heart, X, LogOut } from "lucide-react";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { emptyPet, starterEntries } from "./data/initialData";
 import { useLocalStorage } from "./hooks/useLocalStorage";
@@ -10,6 +10,9 @@ import {
   saveEntries as saveEntriesRemote,
   getPublicPet,
   updateLeaderboard,
+  publishDiaryEntry,
+  unpublishDiaryEntry,
+  loadMySharedEntryIds,
 } from "./services/firebaseData";
 import { Analytics } from "@vercel/analytics/react";
 import Sidebar from "./components/Sidebar/Sidebar";
@@ -21,8 +24,10 @@ import Diary from "./components/Diary/Diary";
 import PublicPet from "./components/PublicPet/PublicPet";
 import AuthGate from "./components/AuthGate/AuthGate";
 import Leaderboard from "./components/Leaderboard/Leaderboard";
+import SharedPaws from "./components/SharedPaws/SharedPaws";
 import HealthRecords from "./components/HealthRecords/HealthRecords";
 import ImagePreview from "./components/ImagePreview/ImagePreview";
+import PawLoader from "./components/PawLoader";
 
 import "./App.css";
 
@@ -51,6 +56,10 @@ const pageMeta = {
     title: "Club de Buenas Huellas",
     subtitle: "Cada gesto de cuidado suma.",
   },
+  community: {
+    title: "Huellitas compartidas",
+    subtitle: "Recuerdos elegidos para compartir amor con la comunidad.",
+  },
 };
 export default function App() {
   const [pet, setPetLocal] = useLocalStorage("huellita-pet-v1", emptyPet);
@@ -59,53 +68,68 @@ export default function App() {
     starterEntries,
   );
 
-  const [active, setActive] = useState("home");
+  const [active, setActive] = useState(() => {
+    const route = window.location.hash.replace(/^#\//, "").split("/")[0];
+    return Object.prototype.hasOwnProperty.call(pageMeta, route) ? route : "home";
+  });
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [dataReady, setDataReady] = useState(false);
+  const [dataLoadError, setDataLoadError] = useState("");
   const [authReady, setAuthReady] = useState(!firebaseConfigured);
   const [demo, setDemo] = useState(!firebaseConfigured);
-  const [publicProfile, setPublicProfile] = useState(false);
+  const [publicProfile, setPublicProfile] = useState(() => window.location.hash.startsWith("#/pet/"));
   const [publicPet, setPublicPet] = useState(null);
-  const [publicLoading, setPublicLoading] = useState(false);
+  const [publicLoading, setPublicLoading] = useState(() => window.location.hash.startsWith("#/pet/"));
   const [points, setPoints] = useLocalStorage("huellita-care-points-v1", 0);
+  const [sharedEntryIds, setSharedEntryIds] = useState([]);
   useEffect(() => {
     if (!firebaseConfigured) return;
     return onAuthStateChanged(auth, async (current) => {
       setUser(current);
       setAuthReady(true);
       if (!current) {
-        setPetLocal({ ...emptyPet });
-        setEntriesLocal([]);
-        setPoints(0);
+        // Do not erase the browser cache on sign-out. Firestore remains the
+        // source of truth for signed-in accounts, and a failed read must never
+        // turn into an empty profile that could later overwrite cloud data.
         setDataReady(false);
+        setDataLoadError("");
         return;
       }
       setDemo(false);
       setDataReady(false);
-      if (current) {
-        // Clear any previous browser cache before loading this account's own data.
-        setPetLocal({ ...emptyPet });
-        setEntriesLocal([]);
-        setPoints(0);
-        try {
-          const data = await loadUserData(current.uid);
-          setPetLocal(data.pet || { ...emptyPet });
-          setEntriesLocal(data.entries);
-          const { doc, getDoc } = await import("firebase/firestore");
-          const snap = await getDoc(
-            doc(db, "leaderboardProfiles", current.uid),
-          );
-          setPoints(snap.exists() ? Number(snap.data().points || 0) : 0);
-          setDataReady(true);
-        } catch (e) {
-          console.error("No se pudo cargar el perfil de Firebase", e);
-          setPetLocal({ ...emptyPet });
-          setEntriesLocal([]);
-          setDataReady(true);
-        }
+      setDataLoadError("");
+      try {
+        const data = await loadUserData(current.uid);
+        setPetLocal(data.pet || { ...emptyPet });
+        setEntriesLocal(data.entries);
+        const sharedIds = await loadMySharedEntryIds(current.uid).catch((err) => { console.warn("No se pudieron consultar las publicaciones compartidas", err); return []; });
+        setSharedEntryIds(sharedIds);
+        const { doc, getDoc } = await import("firebase/firestore");
+        const snap = await getDoc(doc(db, "leaderboardProfiles", current.uid));
+        setPoints(snap.exists() ? Number(snap.data().points || 0) : 0);
+        setDataReady(true);
+      } catch (e) {
+        console.error("No se pudo cargar el perfil de Firebase", e);
+        // Keep the last local copy intact and block all writes until a successful
+        // cloud read. This prevents an empty fallback from deleting diary entries.
+        setDataLoadError(
+          e?.code === "permission-denied"
+            ? "Firebase rechazó la lectura de tus datos. Revisá las reglas de Firestore y que estés usando el proyecto correcto."
+            : "No pudimos leer tus datos de Firebase. Revisá tu conexión y la configuración del proyecto. No modificamos tu copia local."
+        );
       }
     });
+  }, []);
+  useEffect(() => {
+    const syncRoute = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith("#/pet/")) return;
+      const route = hash.replace(/^#\//, "").split("/")[0];
+      setActive(Object.prototype.hasOwnProperty.call(pageMeta, route) ? route : "home");
+    };
+    window.addEventListener("hashchange", syncRoute);
+    return () => window.removeEventListener("hashchange", syncRoute);
   }, []);
   useEffect(() => {
     const sync = async () => {
@@ -164,6 +188,21 @@ export default function App() {
     setEntriesLocal(nextEntries);
     await awardPoints(10);
   };
+  const toggleSharedEntry = async (entry) => {
+    if (!user || !firebaseConfigured) {
+      window.alert("Para compartir recuerdos con la comunidad, iniciá sesión con Firebase.");
+      return;
+    }
+    const isShared = sharedEntryIds.includes(entry.id);
+    try {
+      if (isShared) await unpublishDiaryEntry(user.uid, entry.id);
+      else await publishDiaryEntry(user.uid, entry, pet, user);
+      setSharedEntryIds((current) => isShared ? current.filter((id) => id !== entry.id) : [...current, entry.id]);
+    } catch (error) {
+      console.error("No se pudo actualizar la publicación comunitaria", error);
+      window.alert("No se pudo actualizar Huellitas compartidas. Revisá las reglas de Firestore e intentá nuevamente.");
+    }
+  };
   const awardPoints = async (amount) => {
     const next = points + amount;
     setPoints(next);
@@ -176,15 +215,26 @@ export default function App() {
     }
   };
   const navigate = (page) => {
-    setActive(page);
+    const safePage = Object.prototype.hasOwnProperty.call(pageMeta, page) ? page : "home";
+    setActive(safePage);
     setMobileNavOpen(false);
-    if (window.location.hash.startsWith("#/pet/"))
-      history.replaceState(
-        null,
-        "",
-        `${window.location.pathname}${window.location.search}${page === "home" ? "" : "#/" + page}`,
-      );
+    const nextHash = safePage === "home" ? "" : `#/${safePage}`;
+    if (window.location.hash !== nextHash) window.location.hash = nextHash;
   };
+  const handleLogout = async () => {
+    if (!firebaseConfigured || !auth) {
+      setDemo(false);
+      return;
+    }
+    try {
+      await signOut(auth);
+      setMobileNavOpen(false);
+    } catch (error) {
+      console.error("No se pudo cerrar la sesión", error);
+      window.alert("No se pudo cerrar la sesión. Intentá nuevamente.");
+    }
+  };
+
   const addMemory = () => {
     setActive("diary");
     setMobileNavOpen(false);
@@ -197,18 +247,14 @@ export default function App() {
   if (publicProfile) {
     if (publicLoading)
       return (
-        <div className="public-loading">Buscando la ficha de la mascota…</div>
+        <PawLoader message="Buscando la ficha de tu mascota…" />
       );
     return publicPet ? (
       <>
       <PublicPet
         pet={publicPet}
         onBack={() => {
-          history.replaceState(
-            null,
-            "",
-            window.location.pathname + window.location.search,
-          );
+          window.location.hash = "";
           setPublicProfile(false);
           setActive("home");
         }}
@@ -226,20 +272,33 @@ export default function App() {
     );
   }
   if (firebaseConfigured && !authReady)
-    return <div className="public-loading">Preparando tu espacio…</div>;
+    return <PawLoader message="Preparando tu espacio…" />;
   if (firebaseConfigured && !user)
     return <AuthGate onDemo={() => setDemo(true)} />;
-  if (firebaseConfigured && user && !dataReady)
+  if (firebaseConfigured && user && dataLoadError)
     return (
-      <div
-        className="public-loading paw-loading"
-        role="status"
-        aria-label="Cargando"
-      >
-        <PawPrint className="paw-loading-icon" size={42} strokeWidth={1.8} />
-        <span className="paw-loading-spinner" aria-hidden="true" />
-      </div>
+      <main className="data-error-page" role="alert">
+        <div className="data-error-card">
+          <div className="data-error-icon"><Heart size={25} /></div>
+          <h1>No pudimos cargar tus datos</h1>
+          <p>{dataLoadError}</p>
+          <p className="data-error-note">
+            Por seguridad, la aplicación no va a guardar una ficha vacía ni a
+            sincronizar cambios hasta que Firebase vuelva a responder.
+          </p>
+          <div className="data-error-actions">
+            <button type="button" className="primary-button" onClick={() => window.location.reload()}>
+              Reintentar
+            </button>
+            <button type="button" className="secondary-button" onClick={handleLogout}>
+              <LogOut size={16} /> Cerrar sesión
+            </button>
+          </div>
+        </div>
+      </main>
     );
+  if (firebaseConfigured && user && !dataReady)
+    return <PawLoader message="Cargando tus huellitas y recuerdos…" />;
   if (!user && !demo) return <AuthGate onDemo={() => setDemo(true)} />;
   return (
     <div className="app-shell">
@@ -272,9 +331,16 @@ export default function App() {
               ? "Sesión sincronizada con Firebase"
               : "Modo demostración · los datos se guardan en este navegador"}
           </span>
-          {user && (
-            <button onClick={() => signOut(auth)}>
-              <LogOut size={13} /> Cerrar sesión
+          {(user || demo) && (
+            <button
+              className="logout-button"
+              onClick={handleLogout}
+              type="button"
+              aria-label={user ? "Cerrar sesión" : "Salir de la demo"}
+              title={user ? "Cerrar sesión" : "Salir de la demo"}
+            >
+              <LogOut size={16} strokeWidth={2.2} />
+              <span>{user ? "Cerrar sesión" : "Salir de la demo"}</span>
             </button>
           )}
         </div>
@@ -291,8 +357,11 @@ export default function App() {
             entries={entries}
             setEntries={setEntries}
             onSaveEntry={saveDiaryEntry}
+            sharedEntryIds={sharedEntryIds}
+            onToggleShare={toggleSharedEntry}
           />
         )}
+        {active === "community" && <SharedPaws user={user} firebaseConfigured={Boolean(user && firebaseConfigured)} />}
         {active === "health" && (
           <HealthRecords entries={entries} setEntries={setEntries} pet={pet} />
         )}

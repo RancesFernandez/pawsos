@@ -99,3 +99,22 @@ No hace falta crear tablas/colecciones nuevas. Para aplicar y verificar los perm
 2. Probá abrir una foto desde el resumen, la ficha, el menú lateral y un registro del diario en escritorio y móvil.
 3. Con Firebase configurado, publicá un aviso con una cuenta y verificá que otra cuenta pueda verlo. Confirmá que solo el dueño pueda marcarlo como encontrada.
 4. En esta entrega no se pudo completar una compilación de producción en el entorno de preparación por una dependencia nativa opcional de Rollup ausente; por eso, ejecutá `npm run build` localmente antes de desplegar.
+
+## Mejoras de esta revisión
+
+- **Navegación persistente:** las secciones internas usan rutas hash (`#/profile`, `#/qr`, `#/diary`, `#/health`, `#/ranking`). Al refrescar, la aplicación recupera la sección indicada por la URL. Las fichas públicas mantienen `#/pet/ID`.
+- **Carga con huellitas:** indicador animado reutilizable en la carga inicial de Firebase, carga de ficha pública y operaciones de inicio de sesión/registro. Incluye soporte para `prefers-reduced-motion` y etiquetas accesibles para lectores de pantalla.
+- **Reglas de Firestore para recompensa:** se agregó `reward` a la lista permitida de campos de `publicPets`, alineando las reglas con los datos que ya escribe el servicio. Sin ese cambio, guardar una ficha que incluyera recompensa podía ser rechazado por permisos.
+- **Entrega más limpia:** el ZIP de entrega omite `.git` y `node_modules`; instalá las dependencias con `npm ci` antes de ejecutar `npm run dev` o `npm run build`.
+
+### Verificación
+
+Se realizó revisión estática del flujo de rutas, estados de carga y campos compartidos entre el servicio de Firebase y las reglas. La compilación de producción no pudo completarse en el entorno de revisión porque el `node_modules` original incluido en el ZIP era de Windows y faltaba el binario nativo de Rollup para Linux; esto no implica por sí mismo un error en el código fuente. Ejecutá `npm ci` en tu entorno y luego `npm run build` para validar la compilación allí.
+
+
+## Protección de datos y cierre de sesión
+
+- El botón **Cerrar sesión** aparece en la barra de sesión cuando hay una cuenta autenticada. En modo demostración aparece **Salir de la demo**.
+- Si la lectura inicial de Firestore falla, la app muestra un aviso y bloquea la pantalla de datos en lugar de mostrar una ficha vacía.
+- Un error de lectura ya no reemplaza la copia local de mascota/diario por valores vacíos ni habilita la sincronización automática del diario, que podría borrar registros remotos.
+- Para resolver un error de carga, comprobá que `.env.local` apunta al proyecto Firebase correcto y que publicaste las reglas de `firestore.rules`. Si el proyecto Firebase o la cuenta son distintos de los originales, esta aplicación no puede recuperar datos que no existan en ese proyecto.

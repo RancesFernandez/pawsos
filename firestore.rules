@@ -12,9 +12,39 @@ service cloud.firestore {
     // La ficha QR pública contiene SOLO los campos elegidos para mostrar a quien escanea.
     match /publicPets/{petId} {
       allow read: if true;
-      allow create, update: if signedIn() && request.resource.data.ownerUid == request.auth.uid && request.resource.data.keys().hasOnly(['id','ownerUid','name','species','speciesOther','animalType','animalTypeOther','breed','birthDate','sex','weight','color','photo','temperament','bio','ownerName','phone','whatsapp','city','allergies','conditions','medication','fears','emergencyNotes','food','foodAmount','foodSchedule','walkNotes','vetName','vetPhone','updatedAt']);
+      allow create, update: if signedIn() && request.resource.data.ownerUid == request.auth.uid && request.resource.data.keys().hasOnly(['id','ownerUid','name','species','speciesOther','animalType','animalTypeOther','breed','reward','birthDate','sex','weight','color','photo','temperament','bio','ownerName','phone','whatsapp','city','allergies','conditions','medication','fears','emergencyNotes','food','foodAmount','foodSchedule','walkNotes','vetName','vetPhone','updatedAt']);
       allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
     }
+
+    // Publicaciones comunitarias: solo se publican recuerdos que el usuario elige compartir.
+    // No incluir aquí datos privados del perfil, contactos ni información veterinaria.
+    match /sharedPaws/{postId} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.entryId is string
+        && request.resource.data.title is string
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.note is string
+        && request.resource.data.note.size() <= 1000
+        && request.resource.data.keys().hasOnly(['ownerUid','entryId','authorName','petName','petPhoto','type','title','note','photo','entryDate','createdAt']);
+      allow update: if signedIn()
+        && resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.entryId == resource.data.entryId
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['authorName','petName','petPhoto','type','title','note','photo','entryDate','createdAt']);
+      allow delete: if signedIn() && resource.data.ownerUid == request.auth.uid;
+      match /reactions/{reactionUid} {
+        allow read: if signedIn();
+        allow create, update: if signedIn()
+          && request.auth.uid == reactionUid
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.emoji in ['❤️','🥰','🐾','😂','👏']
+          && request.resource.data.keys().hasOnly(['uid','emoji','updatedAt']);
+        allow delete: if signedIn() && request.auth.uid == reactionUid;
+      }
+    }
+
     // Avisos públicos de mascotas perdidas. El contacto y la foto son visibles para cualquiera.
     match /lostPetAlerts/{alertId} {
       allow read: if true;

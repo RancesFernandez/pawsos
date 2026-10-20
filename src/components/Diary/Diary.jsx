@@ -9,6 +9,8 @@ import {
   Search,
   Trash2,
   CalendarDays,
+  Share2,
+  Check,
 } from "lucide-react";
 import { formatDate } from "../../utils/pet";
 import "./Diary.css";
@@ -22,7 +24,7 @@ const types = [
   { id: "memory", label: "Recuerdo", icon: Sparkles, color: "lilac" },
 ];
 
-export default function Diary({ pet, entries, setEntries, onSaveEntry }) {
+export default function Diary({ pet, entries, setEntries, onSaveEntry, sharedEntryIds = [], onToggleShare }) {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -143,7 +145,7 @@ export default function Diary({ pet, entries, setEntries, onSaveEntry }) {
                 .find((type) => type.id === form.type)
                 ?.label.toLowerCase() || "registro"}
             </h3>
-            <span>Este registro queda guardado en tu diario.</span>
+            <span>Este registro queda privado en tu diario hasta que elijas compartirlo.</span>
           </div>
           <label>
             Tipo de registro
@@ -267,14 +269,26 @@ export default function Diary({ pet, entries, setEntries, onSaveEntry }) {
                   {type.label}
                 </span>
               </div>
-              <button
+              <div className="diary-entry-actions">
+                <button
+                  className={`share-entry ${sharedEntryIds.includes(entry.id) ? "is-shared" : ""}`}
+                  type="button"
+                  onClick={() => onToggleShare?.(entry)}
+                  aria-label={sharedEntryIds.includes(entry.id) ? `Dejar de compartir ${entry.title}` : `Compartir ${entry.title}`}
+                  title={sharedEntryIds.includes(entry.id) ? "Dejar de compartir" : "Compartir con Huellitas compartidas"}
+                >
+                  {sharedEntryIds.includes(entry.id) ? <Check size={15} /> : <Share2 size={15} />}
+                  <span>{sharedEntryIds.includes(entry.id) ? "Compartido" : "Compartir"}</span>
+                </button>
+                <button
                 className="delete-entry"
                 onClick={() => removeEntry(entry.id)}
                 aria-label={`Eliminar ${entry.title}`}
                 title="Eliminar recuerdo"
               >
                 <Trash2 size={15} />
-              </button>
+                </button>
+              </div>
             </article>
           );
         })}

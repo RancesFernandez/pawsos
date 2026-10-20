@@ -161,3 +161,49 @@ export async function createLostPetAlert(uid, alert) {
 export async function resolveLostPetAlert(alertId, uid) {
   await updateDoc(doc(db, "lostPetAlerts", alertId), { status: "found", resolvedAt: new Date().toISOString(), resolvedBy: uid });
 }
+
+
+// Publicación voluntaria de un recuerdo: solo se copian los campos elegidos a la comunidad.
+export async function publishDiaryEntry(uid, entry, pet, user) {
+  const postId = `${uid}_${String(entry.id).replaceAll("/", "_")}`;
+  const post = {
+    ownerUid: uid,
+    entryId: String(entry.id),
+    authorName: user?.displayName || user?.email?.split("@")[0] || "Amante de mascotas",
+    petName: pet?.name || "Mi mascota",
+    petPhoto: pet?.photo || "",
+    type: entry.type || "memory",
+    title: String(entry.title || "Un recuerdo").slice(0, 120),
+    note: String(entry.note || "").slice(0, 1000),
+    photo: entry.photo || "",
+    entryDate: entry.date || new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+  };
+  await setDoc(doc(db, "sharedPaws", postId), post);
+  return postId;
+}
+export async function unpublishDiaryEntry(uid, entryId) {
+  const postId = `${uid}_${String(entryId).replaceAll("/", "_")}`;
+  await deleteDoc(doc(db, "sharedPaws", postId));
+}
+export async function loadSharedPaws() {
+  const q = query(collection(db, "sharedPaws"), orderBy("createdAt", "desc"), limit(100));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+export async function loadMySharedEntryIds(uid) {
+  const q = query(collection(db, "sharedPaws"));
+  const snap = await getDocs(q);
+  return snap.docs.filter((d) => d.data().ownerUid === uid).map((d) => d.data().entryId);
+}
+export async function loadPostReactions(postIds) {
+  return Promise.all(postIds.map(async (postId) => {
+    const snap = await getDocs(collection(db, "sharedPaws", postId, "reactions"));
+    return [postId, snap.docs.map((d) => ({ uid: d.id, ...d.data() }))];
+  }));
+}
+export async function setPostReaction(postId, uid, emoji) {
+  const ref = doc(db, "sharedPaws", postId, "reactions", uid);
+  if (!emoji) return deleteDoc(ref);
+  await setDoc(ref, { uid, emoji, updatedAt: new Date().toISOString() });
+}

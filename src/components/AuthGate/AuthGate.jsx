@@ -6,6 +6,7 @@ import {
   updateProfile,
 } from "firebase/auth";
 import { auth, firebaseConfigured } from "../../firebase";
+import PawLoader from "../PawLoader";
 import "./AuthGate.css";
 export default function AuthGate({ onDemo }) {
   const [mode, setMode] = useState("login");
@@ -79,6 +80,7 @@ export default function AuthGate({ onDemo }) {
           </strong>
         </div>
         <div className="auth-form-wrap">
+          {busy && <div className="auth-loading-overlay"><PawLoader compact message="Un momento, estamos preparando todo…" /></div>}
           <span className="auth-kicker">
             <Sparkles size={14} /> TU ESPACIO PELUDO
           </span>

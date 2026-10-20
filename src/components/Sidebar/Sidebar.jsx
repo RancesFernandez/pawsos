@@ -8,6 +8,7 @@ import {
   ChevronRight,
   Trophy,
   Stethoscope,
+  Users,
 } from "lucide-react";
 import "./Sidebar.css";
 import { openImagePreview } from "../../utils/imagePreview";
@@ -17,6 +18,7 @@ const navItems = [
   { id: "profile", label: "Ficha de mi mascota", icon: PawPrint },
   { id: "qr", label: "Mi placa QR", icon: QrCode },
   { id: "diary", label: "Diario de huellitas", icon: BookHeart },
+  { id: "community", label: "Huellitas compartidas", icon: Users },
   { id: "health", label: "Salud y veterinaria", icon: Stethoscope },
   { id: "ranking", label: "Club de Buenas Huellas", icon: Trophy },
 ];

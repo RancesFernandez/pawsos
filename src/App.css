@@ -198,3 +198,164 @@
     align-items: center;
   }
 }
+
+/* Animated paw-print progress indicator shared by every loading state. */
+.paw-loader{min-height:100vh;width:100%;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:24px;background:radial-gradient(ellipse at 50% 42%,#fffdf7 0%,#f8f7f2 62%,#f0f1e9 100%);color:#3f5368}
+.paw-trail{display:flex;align-items:center;justify-content:center;gap:clamp(8px,2vw,17px);min-height:42px}
+.paw-step{display:inline-flex;color:#9daab2;opacity:.18;transform:translateY(7px) scale(.78);animation:paw-step-fill 1.35s ease-in-out infinite;animation-delay:var(--paw-delay)}
+.paw-loader-message{font-size:13px;font-weight:700;letter-spacing:.02em;text-align:center;color:#687887}
+.paw-loader-compact{min-height:0;background:transparent;padding:12px;gap:9px}
+.paw-loader-compact .paw-trail{gap:5px;min-height:22px}
+.paw-loader-compact .paw-loader-message{font-size:11px}
+@keyframes paw-step-fill{0%,100%{opacity:.2;transform:translateY(7px) scale(.78);color:#a9b3b8}35%,65%{opacity:1;transform:translateY(-3px) scale(1);color:#6f9a87}}
+@media(prefers-reduced-motion:reduce){.paw-step{animation-duration:3s}}
+
+
+/* Prominent, accessible logout action on desktop and mobile. */
+.session-strip {
+  flex-wrap: wrap;
+  min-width: 0;
+  margin: 12px 0 18px;
+  gap: 10px 14px;
+}
+.session-strip > span {
+  min-width: 0;
+  line-height: 1.5;
+}
+.session-strip .logout-button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 15px;
+  border: 1px solid #e1cfc7;
+  border-radius: 12px;
+  background: #fffefa;
+  color: #8a4f46;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+  box-shadow: 0 3px 10px rgba(63, 53, 47, 0.06);
+  cursor: pointer;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+.session-strip .logout-button:hover {
+  background: #fff2ee;
+  border-color: #c98f83;
+  transform: translateY(-1px);
+}
+.session-strip .logout-button:focus-visible {
+  outline: 3px solid #86a99a;
+  outline-offset: 3px;
+}
+.session-strip .logout-button:active {
+  transform: translateY(0);
+}
+@media (max-width: 600px) {
+  .session-strip {
+    align-items: stretch;
+    justify-content: space-between;
+    margin: 12px 0 16px;
+    gap: 10px;
+  }
+  .session-strip > span {
+    flex: 1 1 150px;
+    font-size: 10px;
+    align-self: center;
+  }
+  .session-strip .logout-button {
+    min-height: 42px;
+    padding: 0 12px;
+    gap: 7px;
+    font-size: 12px;
+  }
+}
+@media (max-width: 360px) {
+  .session-strip {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .session-strip .logout-button {
+    width: 100%;
+  }
+}
+
+
+/* Firebase load failures are intentionally blocking: never show an empty profile
+   as if it were the user's real data, and never sync it back to Firestore. */
+.data-error-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: #f8f7f2;
+  color: #3f5368;
+}
+.data-error-card {
+  width: min(100%, 520px);
+  box-sizing: border-box;
+  padding: clamp(24px, 5vw, 38px);
+  border: 1px solid #e7e4db;
+  border-radius: 22px;
+  background: #fffefa;
+  box-shadow: 0 18px 50px rgba(63, 53, 47, .08);
+  text-align: center;
+}
+.data-error-icon {
+  width: 54px;
+  height: 54px;
+  display: grid;
+  place-items: center;
+  margin: 0 auto 18px;
+  border-radius: 17px;
+  background: #f6e8df;
+  color: #a65d4c;
+}
+.data-error-card h1 {
+  margin: 0 0 12px;
+  font-size: clamp(23px, 4vw, 30px);
+  letter-spacing: -.7px;
+}
+.data-error-card p {
+  margin: 0 auto 12px;
+  color: #687887;
+  font-size: 14px;
+  line-height: 1.65;
+}
+.data-error-card .data-error-note {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: #f5f5ef;
+  font-size: 12px;
+}
+.data-error-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+.secondary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 15px;
+  border: 1px solid #e1cfc7;
+  border-radius: 12px;
+  background: #fffefa;
+  color: #8a4f46;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+@media (max-width: 420px) {
+  .data-error-actions { flex-direction: column; }
+  .data-error-actions > button { width: 100%; }
+}
