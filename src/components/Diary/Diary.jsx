@@ -24,7 +24,15 @@ const types = [
   { id: "memory", label: "Recuerdo", icon: Sparkles, color: "lilac" },
 ];
 
-export default function Diary({ pet, entries, setEntries, onSaveEntry, sharedEntryIds = [], onToggleShare }) {
+export default function Diary({
+  pet,
+  entries,
+  setEntries,
+  onSaveEntry,
+  sharedEntryIds = [],
+  onToggleShare,
+  onDeleteEntry,
+}) {
   const [showForm, setShowForm] = useState(false);
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
@@ -51,13 +59,15 @@ export default function Diary({ pet, entries, setEntries, onSaveEntry, sharedEnt
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoError, setPhotoError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [pendingEntry, setPendingEntry] = useState(null);
   const [saveError, setSaveError] = useState("");
   const filtered = useMemo(
     () =>
       entries
         .filter(
           (entry) =>
-            (["walk", "food", "health", "memory"].includes(entry.type)) && (filter === "all" || entry.type === filter) &&
+            ["walk", "food", "health", "memory"].includes(entry.type) &&
+            (filter === "all" || entry.type === filter) &&
             `${entry.title} ${entry.note}`
               .toLowerCase()
               .includes(search.toLowerCase()),
@@ -68,28 +78,49 @@ export default function Diary({ pet, entries, setEntries, onSaveEntry, sharedEnt
 
   const addEntry = async (event) => {
     event.preventDefault();
-    if (!form.title.trim() || saving) return;
-    const entry = {
+    if (!form.title.trim() || saving || photoBusy) return;
+    setPendingEntry({
       ...form,
       id: crypto.randomUUID?.() || String(Date.now()),
       date: new Date().toISOString(),
-    };
+    });
+  };
+
+  const confirmSaveEntry = async (shareWithCommunity) => {
+    if (!pendingEntry || saving) return;
     setSaving(true);
     setSaveError("");
     try {
-      if (onSaveEntry) await onSaveEntry(entry);
-      else setEntries((current) => [entry, ...current]);
-      setForm({ type: filter !== "all" ? filter : "memory", title: "", note: "", photo: "" });
+      if (onSaveEntry) await onSaveEntry(pendingEntry, shareWithCommunity);
+      else setEntries((current) => [pendingEntry, ...current]);
+      setForm({
+        type: filter !== "all" ? filter : "memory",
+        title: "",
+        note: "",
+        photo: "",
+      });
       setShowForm(false);
+      setPendingEntry(null);
     } catch (error) {
       console.error("No se pudo guardar el registro", error);
-      setSaveError("No se pudo guardar el registro. No se sumaron puntos. Revisá tu conexión e intentá nuevamente.");
+      setSaveError(
+        "No pudimos guardar el recuerdo. Revisá tu conexión e intentá nuevamente.",
+      );
+      setPendingEntry(null);
     } finally {
       setSaving(false);
     }
   };
-  const removeEntry = (id) =>
-    setEntries((current) => current.filter((entry) => entry.id !== id));
+
+  const removeEntry = async (id) => {
+    try {
+      if (onDeleteEntry) await onDeleteEntry(id);
+      else setEntries((current) => current.filter((entry) => entry.id !== id));
+    } catch (error) {
+      console.error("No se pudo eliminar el recuerdo", error);
+      setSaveError("No se pudo eliminar el recuerdo. Intentá nuevamente.");
+    }
+  };
 
   return (
     <section className="diary-page">
@@ -145,7 +176,10 @@ export default function Diary({ pet, entries, setEntries, onSaveEntry, sharedEnt
                 .find((type) => type.id === form.type)
                 ?.label.toLowerCase() || "registro"}
             </h3>
-            <span>Este registro queda privado en tu diario hasta que elijas compartirlo.</span>
+            <span>
+              Este registro queda privado en tu diario hasta que elijas
+              compartirlo.
+            </span>
           </div>
           <label>
             Tipo de registro
@@ -201,8 +235,14 @@ export default function Diary({ pet, entries, setEntries, onSaveEntry, sharedEnt
                 alt="Vista previa del recuerdo"
                 role="button"
                 tabIndex={0}
-                onClick={() => openImagePreview(form.photo, "Vista previa del recuerdo")}
-                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), openImagePreview(form.photo, "Vista previa del recuerdo"))}
+                onClick={() =>
+                  openImagePreview(form.photo, "Vista previa del recuerdo")
+                }
+                onKeyDown={(e) =>
+                  (e.key === "Enter" || e.key === " ") &&
+                  (e.preventDefault(),
+                  openImagePreview(form.photo, "Vista previa del recuerdo"))
+                }
               />
             )}
             <small className="photo-status">
@@ -219,7 +259,11 @@ export default function Diary({ pet, entries, setEntries, onSaveEntry, sharedEnt
               placeholder="Escribí algo lindo, una observación o cómo se sintió..."
             />
           </label>
-          {saveError && <p className="photo-error entry-save-error" role="alert">{saveError}</p>}
+          {saveError && (
+            <p className="photo-error entry-save-error" role="alert">
+              {saveError}
+            </p>
+          )}
           <div className="entry-form-actions">
             <button
               type="button"
@@ -233,6 +277,44 @@ export default function Diary({ pet, entries, setEntries, onSaveEntry, sharedEnt
             </button>
           </div>
         </form>
+      )}
+      {pendingEntry && (
+        <div className="share-choice-backdrop" role="presentation">
+          <section
+            className="share-choice-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="share-choice-title"
+          >
+            <div className="share-choice-heart" aria-hidden="true">
+              ♡
+            </div>
+            <h3 id="share-choice-title">¿Compartimos este pedacito de amor?</h3>
+            <p>
+              ¿Te gustaría compartir este recuerdo de{" "}
+              {pet.name || "tu compañero de huellitas"} con la comunidad para
+              alegrarle el día a otra familia? Vos elegís 💕
+            </p>
+            <div className="share-choice-actions">
+              <button
+                type="button"
+                className="text-button"
+                disabled={saving}
+                onClick={() => confirmSaveEntry(false)}
+              >
+                No, que quede entre nosotros
+              </button>
+              <button
+                type="button"
+                className="primary-button"
+                disabled={saving}
+                onClick={() => confirmSaveEntry(true)}
+              >
+                {saving ? "Guardando…" : "¡Sí, compartir!"}
+              </button>
+            </div>
+          </section>
+        </div>
       )}
       <div className="diary-list">
         {filtered.map((entry) => {
@@ -260,8 +342,20 @@ export default function Diary({ pet, entries, setEntries, onSaveEntry, sharedEnt
                     loading="lazy"
                     role="button"
                     tabIndex={0}
-                    onClick={() => openImagePreview(entry.photo, entry.title || "Foto del diario")}
-                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), openImagePreview(entry.photo, entry.title || "Foto del diario"))}
+                    onClick={() =>
+                      openImagePreview(
+                        entry.photo,
+                        entry.title || "Foto del diario",
+                      )
+                    }
+                    onKeyDown={(e) =>
+                      (e.key === "Enter" || e.key === " ") &&
+                      (e.preventDefault(),
+                      openImagePreview(
+                        entry.photo,
+                        entry.title || "Foto del diario",
+                      ))
+                    }
                     title="Abrir imagen en grande"
                   />
                 )}
@@ -274,19 +368,35 @@ export default function Diary({ pet, entries, setEntries, onSaveEntry, sharedEnt
                   className={`share-entry ${sharedEntryIds.includes(entry.id) ? "is-shared" : ""}`}
                   type="button"
                   onClick={() => onToggleShare?.(entry)}
-                  aria-label={sharedEntryIds.includes(entry.id) ? `Dejar de compartir ${entry.title}` : `Compartir ${entry.title}`}
-                  title={sharedEntryIds.includes(entry.id) ? "Dejar de compartir" : "Compartir con Huellitas compartidas"}
+                  aria-label={
+                    sharedEntryIds.includes(entry.id)
+                      ? `Dejar de compartir ${entry.title}`
+                      : `Compartir ${entry.title}`
+                  }
+                  title={
+                    sharedEntryIds.includes(entry.id)
+                      ? "Dejar de compartir"
+                      : "Compartir con Huellitas compartidas"
+                  }
                 >
-                  {sharedEntryIds.includes(entry.id) ? <Check size={15} /> : <Share2 size={15} />}
-                  <span>{sharedEntryIds.includes(entry.id) ? "Compartido" : "Compartir"}</span>
+                  {sharedEntryIds.includes(entry.id) ? (
+                    <Check size={15} />
+                  ) : (
+                    <Share2 size={15} />
+                  )}
+                  <span>
+                    {sharedEntryIds.includes(entry.id)
+                      ? "Compartido"
+                      : "Compartir"}
+                  </span>
                 </button>
                 <button
-                className="delete-entry"
-                onClick={() => removeEntry(entry.id)}
-                aria-label={`Eliminar ${entry.title}`}
-                title="Eliminar recuerdo"
-              >
-                <Trash2 size={15} />
+                  className="delete-entry"
+                  onClick={() => removeEntry(entry.id)}
+                  aria-label={`Eliminar ${entry.title}`}
+                  title="Eliminar recuerdo"
+                >
+                  <Trash2 size={15} />
                 </button>
               </div>
             </article>
@@ -306,7 +416,6 @@ export default function Diary({ pet, entries, setEntries, onSaveEntry, sharedEnt
           </div>
         )}
       </div>
-
     </section>
   );
 }

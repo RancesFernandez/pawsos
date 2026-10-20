@@ -70,7 +70,9 @@ export default function App() {
 
   const [active, setActive] = useState(() => {
     const route = window.location.hash.replace(/^#\//, "").split("/")[0];
-    return Object.prototype.hasOwnProperty.call(pageMeta, route) ? route : "home";
+    return Object.prototype.hasOwnProperty.call(pageMeta, route)
+      ? route
+      : "home";
   });
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [user, setUser] = useState(null);
@@ -78,9 +80,13 @@ export default function App() {
   const [dataLoadError, setDataLoadError] = useState("");
   const [authReady, setAuthReady] = useState(!firebaseConfigured);
   const [demo, setDemo] = useState(!firebaseConfigured);
-  const [publicProfile, setPublicProfile] = useState(() => window.location.hash.startsWith("#/pet/"));
+  const [publicProfile, setPublicProfile] = useState(() =>
+    window.location.hash.startsWith("#/pet/"),
+  );
   const [publicPet, setPublicPet] = useState(null);
-  const [publicLoading, setPublicLoading] = useState(() => window.location.hash.startsWith("#/pet/"));
+  const [publicLoading, setPublicLoading] = useState(() =>
+    window.location.hash.startsWith("#/pet/"),
+  );
   const [points, setPoints] = useLocalStorage("huellita-care-points-v1", 0);
   const [sharedEntryIds, setSharedEntryIds] = useState([]);
   useEffect(() => {
@@ -103,7 +109,15 @@ export default function App() {
         const data = await loadUserData(current.uid);
         setPetLocal(data.pet || { ...emptyPet });
         setEntriesLocal(data.entries);
-        const sharedIds = await loadMySharedEntryIds(current.uid).catch((err) => { console.warn("No se pudieron consultar las publicaciones compartidas", err); return []; });
+        const sharedIds = await loadMySharedEntryIds(current.uid).catch(
+          (err) => {
+            console.warn(
+              "No se pudieron consultar las publicaciones compartidas",
+              err,
+            );
+            return [];
+          },
+        );
         setSharedEntryIds(sharedIds);
         const { doc, getDoc } = await import("firebase/firestore");
         const snap = await getDoc(doc(db, "leaderboardProfiles", current.uid));
@@ -116,7 +130,7 @@ export default function App() {
         setDataLoadError(
           e?.code === "permission-denied"
             ? "Firebase rechazó la lectura de tus datos. Revisá las reglas de Firestore y que estés usando el proyecto correcto."
-            : "No pudimos leer tus datos de Firebase. Revisá tu conexión y la configuración del proyecto. No modificamos tu copia local."
+            : "No pudimos leer tus datos de Firebase. Revisá tu conexión y la configuración del proyecto. No modificamos tu copia local.",
         );
       }
     });
@@ -126,7 +140,9 @@ export default function App() {
       const hash = window.location.hash;
       if (hash.startsWith("#/pet/")) return;
       const route = hash.replace(/^#\//, "").split("/")[0];
-      setActive(Object.prototype.hasOwnProperty.call(pageMeta, route) ? route : "home");
+      setActive(
+        Object.prototype.hasOwnProperty.call(pageMeta, route) ? route : "home",
+      );
     };
     window.addEventListener("hashchange", syncRoute);
     return () => window.removeEventListener("hashchange", syncRoute);
@@ -179,28 +195,57 @@ export default function App() {
         console.error("Error guardando diario", e),
       );
   }, [entries, user, dataReady]);
-  const saveDiaryEntry = async (entry) => {
+  const saveDiaryEntry = async (entry, shareWithCommunity = false) => {
     const nextEntries = [entry, ...entries];
     // In a real account, points are awarded only after Firestore confirms the save.
     if (user && firebaseConfigured) {
       await saveEntriesRemote(user.uid, nextEntries);
+      if (shareWithCommunity) {
+        await publishDiaryEntry(user.uid, entry, pet, user);
+        setSharedEntryIds((current) =>
+          current.includes(entry.id) ? current : [...current, entry.id],
+        );
+      }
+    } else if (shareWithCommunity) {
+      window.alert(
+        "Para compartir recuerdos con la comunidad, iniciá sesión con Firebase. El recuerdo se guardará en tu diario.",
+      );
     }
     setEntriesLocal(nextEntries);
     await awardPoints(10);
   };
+  const deleteDiaryEntry = async (entryId) => {
+    if (user && firebaseConfigured && sharedEntryIds.includes(entryId)) {
+      // Primero retiramos la publicación pública; si falla, conservamos el recuerdo.
+      await unpublishDiaryEntry(user.uid, entryId);
+    }
+    const nextEntries = entries.filter((entry) => entry.id !== entryId);
+    if (user && firebaseConfigured)
+      await saveEntriesRemote(user.uid, nextEntries);
+    setEntriesLocal(nextEntries);
+    setSharedEntryIds((current) => current.filter((id) => id !== entryId));
+  };
   const toggleSharedEntry = async (entry) => {
     if (!user || !firebaseConfigured) {
-      window.alert("Para compartir recuerdos con la comunidad, iniciá sesión con Firebase.");
+      window.alert(
+        "Para compartir recuerdos con la comunidad, iniciá sesión con Firebase.",
+      );
       return;
     }
     const isShared = sharedEntryIds.includes(entry.id);
     try {
       if (isShared) await unpublishDiaryEntry(user.uid, entry.id);
       else await publishDiaryEntry(user.uid, entry, pet, user);
-      setSharedEntryIds((current) => isShared ? current.filter((id) => id !== entry.id) : [...current, entry.id]);
+      setSharedEntryIds((current) =>
+        isShared
+          ? current.filter((id) => id !== entry.id)
+          : [...current, entry.id],
+      );
     } catch (error) {
       console.error("No se pudo actualizar la publicación comunitaria", error);
-      window.alert("No se pudo actualizar Huellitas compartidas. Revisá las reglas de Firestore e intentá nuevamente.");
+      window.alert(
+        "No se pudo actualizar Huellitas compartidas. Revisá las reglas de Firestore e intentá nuevamente.",
+      );
     }
   };
   const awardPoints = async (amount) => {
@@ -215,7 +260,9 @@ export default function App() {
     }
   };
   const navigate = (page) => {
-    const safePage = Object.prototype.hasOwnProperty.call(pageMeta, page) ? page : "home";
+    const safePage = Object.prototype.hasOwnProperty.call(pageMeta, page)
+      ? page
+      : "home";
     setActive(safePage);
     setMobileNavOpen(false);
     const nextHash = safePage === "home" ? "" : `#/${safePage}`;
@@ -246,20 +293,18 @@ export default function App() {
   const meta = pageMeta[active] || pageMeta.home;
   if (publicProfile) {
     if (publicLoading)
-      return (
-        <PawLoader message="Buscando la ficha de tu mascota…" />
-      );
+      return <PawLoader message="Buscando la ficha de tu mascota…" />;
     return publicPet ? (
       <>
-      <PublicPet
-        pet={publicPet}
-        onBack={() => {
-          window.location.hash = "";
-          setPublicProfile(false);
-          setActive("home");
-        }}
-      />
-      <ImagePreview />
+        <PublicPet
+          pet={publicPet}
+          onBack={() => {
+            window.location.hash = "";
+            setPublicProfile(false);
+            setActive("home");
+          }}
+        />
+        <ImagePreview />
       </>
     ) : (
       <main className="public-missing">
@@ -279,7 +324,9 @@ export default function App() {
     return (
       <main className="data-error-page" role="alert">
         <div className="data-error-card">
-          <div className="data-error-icon"><Heart size={25} /></div>
+          <div className="data-error-icon">
+            <Heart size={25} />
+          </div>
           <h1>No pudimos cargar tus datos</h1>
           <p>{dataLoadError}</p>
           <p className="data-error-note">
@@ -287,10 +334,18 @@ export default function App() {
             sincronizar cambios hasta que Firebase vuelva a responder.
           </p>
           <div className="data-error-actions">
-            <button type="button" className="primary-button" onClick={() => window.location.reload()}>
+            <button
+              type="button"
+              className="primary-button"
+              onClick={() => window.location.reload()}
+            >
               Reintentar
             </button>
-            <button type="button" className="secondary-button" onClick={handleLogout}>
+            <button
+              type="button"
+              className="secondary-button"
+              onClick={handleLogout}
+            >
               <LogOut size={16} /> Cerrar sesión
             </button>
           </div>
@@ -357,16 +412,26 @@ export default function App() {
             entries={entries}
             setEntries={setEntries}
             onSaveEntry={saveDiaryEntry}
+            onDeleteEntry={deleteDiaryEntry}
             sharedEntryIds={sharedEntryIds}
             onToggleShare={toggleSharedEntry}
           />
         )}
-        {active === "community" && <SharedPaws user={user} firebaseConfigured={Boolean(user && firebaseConfigured)} />}
+        {active === "community" && (
+          <SharedPaws
+            user={user}
+            firebaseConfigured={Boolean(user && firebaseConfigured)}
+          />
+        )}
         {active === "health" && (
           <HealthRecords entries={entries} setEntries={setEntries} pet={pet} />
         )}
         {active === "ranking" && (
-          <Leaderboard entries={entries} pet={pet} user={{ ...user, uid: user?.uid, points }} />
+          <Leaderboard
+            entries={entries}
+            pet={pet}
+            user={{ ...user, uid: user?.uid, points }}
+          />
         )}
         <footer className="app-footer">
           <span>
