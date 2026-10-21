@@ -118,3 +118,12 @@ Se realizó revisión estática del flujo de rutas, estados de carga y campos co
 - Si la lectura inicial de Firestore falla, la app muestra un aviso y bloquea la pantalla de datos en lugar de mostrar una ficha vacía.
 - Un error de lectura ya no reemplaza la copia local de mascota/diario por valores vacíos ni habilita la sincronización automática del diario, que podría borrar registros remotos.
 - Para resolver un error de carga, comprobá que `.env.local` apunta al proyecto Firebase correcto y que publicaste las reglas de `firestore.rules`. Si el proyecto Firebase o la cuenta son distintos de los originales, esta aplicación no puede recuperar datos que no existan en ese proyecto.
+
+
+## Mejoras incorporadas
+
+- **Recuperación de contraseña:** desde el inicio de sesión, elegí “¿Olvidaste tu contraseña?” e ingresá el email de la cuenta. Firebase enviará el enlace de recuperación. Verificá en Firebase Console que el proveedor **Email/Password** esté habilitado y que la plantilla de restablecimiento esté configurada.
+- **Progreso real de la ficha:** el porcentaje cuenta los campos útiles de las cuatro secciones, incluyendo los nuevos datos de salud. “Recompensa” se excluye porque es opcional. Si elegís “Otro” en especie o tipo de animal, también se cuenta el campo de especificación.
+- **Datos de salud:** se agregaron estado de vacunas, fecha de próximo refuerzo, última visita veterinaria y estado de castración.
+- **Selects más cuidados:** flecha, fondo, estados de foco y hover personalizados. El menú desplegado de opciones sigue dependiendo del navegador y sistema operativo.
+- **Vista de imágenes:** las imágenes ampliables usan un cursor de huellita personalizado en navegadores compatibles, con un cursor de respaldo y foco accesible por teclado.

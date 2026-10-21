@@ -3,6 +3,7 @@ import { PawPrint, Mail, LockKeyhole, Sparkles } from "lucide-react";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   updateProfile,
 } from "firebase/auth";
 import { auth, firebaseConfigured } from "../../firebase";
@@ -10,6 +11,7 @@ import PawLoader from "../PawLoader";
 import "./AuthGate.css";
 export default function AuthGate({ onDemo }) {
   const [mode, setMode] = useState("login");
+  const [resetSent, setResetSent] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -18,6 +20,7 @@ export default function AuthGate({ onDemo }) {
   const submit = async (e) => {
     e.preventDefault();
     setError("");
+    setResetSent(false);
     setBusy(true);
     try {
       if (!firebaseConfigured)
@@ -42,6 +45,34 @@ export default function AuthGate({ onDemo }) {
             : err.code === "auth/weak-password"
               ? "La contraseña debe tener al menos 6 caracteres."
               : err.message || "No se pudo iniciar sesión.",
+      );
+    } finally {
+      setBusy(false);
+    }
+  };
+  const resetPassword = async () => {
+    setError("");
+    setResetSent(false);
+    const cleanEmail = email.trim();
+    if (!cleanEmail) {
+      setError("Escribí tu email en el campo de arriba y te enviamos el enlace para recuperar la contraseña.");
+      return;
+    }
+    if (!firebaseConfigured) {
+      setError("La recuperación de contraseña estará disponible cuando Firebase esté configurado.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await sendPasswordResetEmail(auth, cleanEmail);
+      setResetSent(true);
+    } catch (err) {
+      setError(
+        err.code === "auth/invalid-email"
+          ? "Revisá que el email esté escrito correctamente."
+          : err.code === "auth/too-many-requests"
+            ? "Hubo demasiados intentos. Esperá unos minutos y volvé a probar."
+            : "No pudimos enviar el email. Revisá la dirección e intentá nuevamente.",
       );
     } finally {
       setBusy(false);
@@ -138,6 +169,18 @@ export default function AuthGate({ onDemo }) {
                 />
               </div>
             </label>
+            {mode === "login" && (
+              <div className="auth-forgot-row">
+                <button type="button" onClick={resetPassword} disabled={busy}>
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+            )}
+            {resetSent && (
+              <div className="auth-success" role="status">
+                Si hay una cuenta asociada a ese email, recibirás un enlace para crear una nueva contraseña. Revisá también spam.
+              </div>
+            )}
             {error && (
               <div className="auth-error" role="alert">
                 {error}
@@ -159,6 +202,7 @@ export default function AuthGate({ onDemo }) {
               onClick={() => {
                 setMode(mode === "login" ? "register" : "login");
                 setError("");
+                setResetSent(false);
               }}
             >
               {mode === "login" ? "Registrate" : "Iniciá sesión"}

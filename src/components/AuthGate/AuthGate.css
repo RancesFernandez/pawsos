@@ -321,3 +321,10 @@
 .auth-loading-overlay{position:absolute;inset:-12px;z-index:5;display:grid;place-items:center;background:rgba(255,253,247,.88);backdrop-filter:blur(5px);border-radius:18px;animation:auth-loading-in .18s ease-out}
 @keyframes auth-loading-in{from{opacity:0}to{opacity:1}}
 @media(prefers-reduced-motion:reduce){.auth-loading-overlay{animation:none}}
+
+.auth-forgot-row{display:flex;justify-content:flex-end;margin-top:-7px}
+.auth-forgot-row button{border:0;background:transparent;padding:2px 0;color:#3f5368;font:inherit;font-size:11px;font-weight:800;cursor:pointer}
+.auth-forgot-row button:hover{text-decoration:underline;color:#b9624d}
+.auth-forgot-row button:focus-visible{outline:2px solid #cb806b;outline-offset:3px;border-radius:4px}
+.auth-forgot-row button:disabled{opacity:.6;cursor:wait}
+.auth-success{font-size:12px;line-height:1.55;background:#edf7ef;border:1px solid #cce8d2;color:#39734a;padding:11px 12px;border-radius:10px}

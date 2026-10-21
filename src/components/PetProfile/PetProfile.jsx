@@ -93,6 +93,10 @@ const fields = {
     ["vetPhone", "Teléfono de la veterinaria", "tel"],
   ],
   health: [
+    ["vaccines", "Vacunas al día", "select", ["Sí", "No", "No estoy seguro/a"]],
+    ["nextVaccineDate", "Próxima vacuna / refuerzo", "date"],
+    ["lastVetVisit", "Última visita veterinaria", "date"],
+    ["sterilized", "¿Está castrada/o?", "select", ["Sí", "No", "No aplica", "No estoy seguro/a"]],
     ["allergies", "Alergias", "text"],
     ["conditions", "Condiciones médicas importantes", "textarea"],
     ["medication", "Medicamentos y dosis", "textarea"],
@@ -123,11 +127,20 @@ export default function PetProfile({ pet, setPet, onNavigate }) {
     window.setTimeout(() => setSaved(false), 2800);
   };
 
-  const requiredFields = ["name", "species", "animalType"];
-  if (draft.species === "Otro") requiredFields.push("speciesOther");
-  if (draft.animalType === "Otro") requiredFields.push("animalTypeOther");
-  const completedRequired = requiredFields.filter((key) => String(draft[key] || "").trim()).length;
-  const completion = Math.round((completedRequired / requiredFields.length) * 100);
+  // The progress reflects the whole useful profile, not just the three
+  // essential fields. "Recompensa" is intentionally excluded because it is optional.
+  const completionFields = Object.values(fields)
+    .flat()
+    .filter(([key]) => key !== "reward")
+    .map(([key]) => key);
+  if (draft.species === "Otro") completionFields.push("speciesOther");
+  if (draft.animalType === "Otro") completionFields.push("animalTypeOther");
+  const completedFields = completionFields.filter((key) =>
+    String(draft[key] ?? "").trim()
+  ).length;
+  const completion = Math.round(
+    (completedFields / Math.max(completionFields.length, 1)) * 100
+  );
 
   return (
     <section className="profile-page">
@@ -161,7 +174,7 @@ export default function PetProfile({ pet, setPet, onNavigate }) {
               }}
             />
           </div>
-          <small>Datos esenciales completos</small>
+          <small>{completedFields} de {completionFields.length} datos completados</small>
         </div>
       </div>
       <div className="profile-layout">
@@ -206,8 +219,9 @@ export default function PetProfile({ pet, setPet, onNavigate }) {
                           value={draft[key] || ""}
                           onChange={(e) => change(key, e.target.value)}
                         >
+                          <option value="">Elegí una opción…</option>
                           {options.map((option) => (
-                            <option key={option}>{option}</option>
+                            <option key={option} value={option}>{option}</option>
                           ))}
                         </select>
                       ) : type === "textarea" ? (
